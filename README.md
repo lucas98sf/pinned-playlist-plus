@@ -1,6 +1,6 @@
 # Pinned Playlist Plus
 
-A standalone Spicetify extension that replaces song-saving **+** controls with one-click saving to your first pinned playlist. A separate **heart** toggles Liked Songs.
+A standalone Spicetify extension that replaces song-saving **+** controls with one-click saving to your first pinned playlist. A separate **♥** toggles Liked Songs.
 
 ![Pinned Playlist Plus preview](assets/preview.svg)
 
@@ -26,11 +26,11 @@ Open Spotify's profile menu → **Pinned Playlist Plus settings**.
 - **Save mode:** first pinned playlist only (default), first pinned playlist AND Liked Songs, or Liked Songs only.
 - **Destination:** always the first pinned playlist in Your Library. Reorder your pins to change it. Settings display its name automatically.
 - **Separate Liked Songs button:** show both + and an independent Liked Songs control (default on).
-- **Heart icon:** use a heart for Liked Songs (default on), or a plus/check.
+- **♥ icon:** use ♥ for Liked Songs (default on), or a plus/check.
 
-Songs are appended to the destination. Existing songs are not added again. Playlist saves never remove songs; the heart toggles Liked Songs. If there is no pinned playlist or the first pin is not editable, the extension shows an error rather than changing the destination. In both mode, a successful playlist save followed by a failed like is reported as partial success.
+Songs are appended to the destination. Existing songs are not added again. Playlist saves never remove songs; ♥ toggles Liked Songs. If there is no pinned playlist or the first pin is not editable, the extension shows an error rather than changing the destination. In both mode, a successful playlist save followed by a failed like is reported as partial success.
 
-The playlist button shows a green check when the song is already in the first pinned playlist. The heart tracks Liked Songs separately. Status refreshes after saves, playlist edits, pin changes, navigation, and periodically for changes from other devices. On the destination playlist's own page, its song rows hide the redundant playlist button while retaining the heart; player and queue controls remain available.
+The playlist button shows a green check when the song is already in the first pinned playlist. ♥ tracks Liked Songs separately. Status refreshes after saves, playlist edits, pin changes, navigation, and periodically for changes from other devices. On the destination playlist's own page, its song rows hide the redundant playlist button while retaining ♥; player and queue controls remain available.
 
 Both buttons share a compact group and use Spicetify tooltips styled to match Spotify's native tooltip font, background, spacing, rounded corners and shadow.
 
