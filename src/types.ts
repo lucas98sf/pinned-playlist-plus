@@ -13,6 +13,10 @@ export interface LibraryItem {
   pinned?: boolean;
   canAddTo?: boolean;
 }
+export interface PlaylistItem {
+  uri: string;
+  uid: string;
+}
 export interface SpotifyEvent {
   data?: { uri?: string; error?: unknown; isInLibrary?: boolean };
 }
@@ -38,11 +42,8 @@ export interface Platform {
     getEvents?(): EventBus;
   };
   PlaylistAPI: {
-    getItem(playlist: string, track: string): Promise<unknown>;
-    remove(
-      playlist: string,
-      tracks: { uri: string; uid: string[] }[],
-    ): Promise<unknown>;
+    getItem(playlist: string, track: string): Promise<PlaylistItem | null>;
+    remove(playlist: string, tracks: PlaylistItem[]): Promise<unknown>;
     add(
       playlist: string,
       tracks: string[],
@@ -101,6 +102,7 @@ export interface ManagedControl {
   group: HTMLSpanElement;
 }
 export interface Runtime {
+  readonly version: string;
   configure(next: unknown): void;
   showSettings(): void;
   scan(): void;

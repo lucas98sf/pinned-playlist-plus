@@ -1,5 +1,6 @@
 import { target } from "./actions";
 import { errorMessage } from "./errors";
+import { VERSION } from "./constants";
 import type { SpicetifyHost, Settings, ToggleKey } from "./types";
 
 export function createSettingsView(
@@ -106,6 +107,9 @@ export function createSettingsView(
       save.onclick = saveSettings;
       actions.append(save);
     }
+    const version = doc.createElement("p");
+    version.textContent = `Version ${VERSION}`;
+    root.append(version);
     S.PopupModal.display({ title: "Pinned Playlist Plus", content: root });
   }
 

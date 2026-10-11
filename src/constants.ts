@@ -1,4 +1,6 @@
 import type { Settings } from "./types";
+import { version } from "../package.json";
+export const VERSION = version;
 export const KEY = "pinned-playlist-plus:v1";
 export const DEFAULTS: Settings = {
   enabled: true,

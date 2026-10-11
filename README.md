@@ -10,6 +10,8 @@ Search for **Pinned Playlist Plus** in Spicetify Marketplace after its index ref
 
 If you previously installed manually, disable that copy before installing from Marketplace to avoid loading two copies. On Windows, use `./install.ps1 -Uninstall`, then install the Marketplace version.
 
+If you installed before the compiled bundle moved to `dist/`, remove the old entry from **Marketplace → Installed**, then install it again from **Extensions** and reload Spotify. Marketplace keeps the script URL from installation; opening Installed alone does not refresh a changed file path. The settings dialog displays the running version so you can confirm an update.
+
 ## Install on Windows
 
 With Spicetify already installed, run from this folder:

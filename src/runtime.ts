@@ -1,4 +1,4 @@
-import { KEY, ICONS, TRACK } from "./constants";
+import { KEY, ICONS, TRACK, VERSION } from "./constants";
 import { settings } from "./settings";
 import { target, createActions } from "./actions";
 import { LEGACY_BUTTONS, isSaveButton, trackFor } from "./dom";
@@ -375,6 +375,7 @@ export function start(S: SpicetifyHost, doc: Document = document): Runtime {
   refreshTimer.unref?.();
   scan();
   return {
+    version: VERSION,
     configure,
     showSettings,
     scan,

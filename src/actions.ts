@@ -38,7 +38,13 @@ export function createActions(api: Platform) {
         const operation = (async () => {
           const existing = await api.PlaylistAPI.getItem(playlist.uri, uri);
           if (existing) {
-            await api.PlaylistAPI.remove(playlist.uri, [{ uri, uid: [] }]);
+            if (typeof existing.uid !== "string" || !existing.uid)
+              throw new Error(
+                "Spotify did not provide a playlist entry ID for this song.",
+              );
+            await api.PlaylistAPI.remove(playlist.uri, [
+              { uri, uid: existing.uid },
+            ]);
             return true;
           }
           await api.PlaylistAPI.add(playlist.uri, [uri], { after: "end" });

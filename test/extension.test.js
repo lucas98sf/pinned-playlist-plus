@@ -68,12 +68,15 @@ function platform() {
       getEvents: () => playlistEvents,
       getMetadata: async (uri) => ({ uri, name: "Override", canAdd: true }),
       getItem: async (uri, track) =>
-        tracks.has(`${uri}:${track}`) ? { uri: track } : null,
+        tracks.has(`${uri}:${track}`)
+          ? { uri: track, uid: `row-${track}` }
+          : null,
       add: async (uri, uris, position) => {
         calls.push(["playlist", uri, uris, position]);
         uris.forEach((track) => tracks.add(`${uri}:${track}`));
       },
       remove: async (uri, items) => {
+        for (const item of items) assert.equal(item.uid, `row-${item.uri}`);
         calls.push(["removePlaylist", uri, items]);
         items.forEach((item) => tracks.delete(`${uri}:${item.uri}`));
       },
@@ -134,7 +137,7 @@ test("playlist-only button toggles playlist membership and avoids concurrent dup
   ]);
   assert.deepEqual(
     calls.find((call) => call[0] === "removePlaylist").slice(1),
-    [playlist, [{ uri: song, uid: [] }]],
+    [playlist, [{ uri: song, uid: `row-${song}` }]],
   );
 });
 
