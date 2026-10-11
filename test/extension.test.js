@@ -283,7 +283,8 @@ test("settings name the first pinned playlist automatically and offer no overrid
     "First pinned playlist: First",
   );
   assert.equal(modal.content.querySelector('input[type="text"]'), null);
-  assert.equal(modal.content.querySelectorAll("button").length, 1);
+  assert.equal(modal.content.querySelectorAll("button").length, 2);
+  assert.match(modal.content.textContent, /Check for updates/);
   modal.content.querySelector("button").click();
   const saved = calls.find((call) => call[0] === "storage")[2];
   assert.equal(saved.mode, "both");

@@ -1,0 +1,35 @@
+name: Publish release
+on:
+  push:
+    tags: ["v*"]
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run check
+      - run: npm test
+      - name: Validate release version and committed bundle
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          node --input-type=module -e 'import fs from "node:fs"; const p=JSON.parse(fs.readFileSync("package.json")); const m=JSON.parse(fs.readFileSync("manifest.json")); if(process.env.RELEASE_TAG !== "v"+p.version || m.version !== p.version) throw Error("Release versions do not match");'
+          git diff --exit-code -- dist/pinned-playlist-plus.js
+      - name: Package and publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          mkdir -p release
+          cp dist/pinned-playlist-plus.js release/
+          cp install.ps1 README.md LICENSE release/
+          (cd release && sha256sum pinned-playlist-plus.js > SHA256SUMS)
+          (cd release && zip -r ../pinned-playlist-plus.zip .)
+          gh release create "$RELEASE_TAG" pinned-playlist-plus.zip release/pinned-playlist-plus.js release/SHA256SUMS --verify-tag --generate-notes --title "Pinned Playlist Plus $RELEASE_TAG"

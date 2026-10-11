@@ -1,6 +1,12 @@
 import { target } from "./actions";
 import { errorMessage } from "./errors";
 import { VERSION } from "./constants";
+import {
+  latestRelease,
+  installRelease,
+  RELEASES_URL,
+  type Release,
+} from "./updates";
 import type { SpicetifyHost, Settings, ToggleKey } from "./types";
 
 export function createSettingsView(
@@ -108,8 +114,50 @@ export function createSettingsView(
       actions.append(save);
     }
     const version = doc.createElement("p");
-    version.textContent = `Version ${VERSION}`;
+    const marketplace = [...doc.scripts].some((script) =>
+      script.src.includes("lucas98sf/pinned-playlist-plus"),
+    );
+    version.textContent = `Version ${VERSION} · ${marketplace ? "Marketplace" : "Manual installation"}`;
     root.append(version);
+    const updateStatus = doc.createElement("p");
+    updateStatus.setAttribute("role", "status");
+    const update = doc.createElement("button");
+    update.type = "button";
+    update.className = "ppp-save";
+    update.textContent = "Check for updates";
+    let release: Release | null = null;
+    let installed = false;
+    update.onclick = async () => {
+      if (installed) {
+        doc.defaultView?.location.reload();
+        return;
+      }
+      update.disabled = true;
+      try {
+        if (release) {
+          await installRelease(release);
+          installed = true;
+          updateStatus.textContent = `Version ${release.version} selected. Reload Spotify to finish updating. Your settings are preserved.`;
+          update.textContent = "Reload Spotify";
+        } else {
+          release = await latestRelease();
+          updateStatus.textContent = release
+            ? `Version ${release.version} is available.`
+            : `Version ${VERSION} is up to date.`;
+          if (release) update.textContent = `Install v${release.version}`;
+        }
+      } catch (error) {
+        updateStatus.textContent = errorMessage(error);
+      } finally {
+        update.disabled = false;
+      }
+    };
+    const notes = doc.createElement("a");
+    notes.href = RELEASES_URL;
+    notes.target = "_blank";
+    notes.rel = "noopener noreferrer";
+    notes.textContent = "Release notes";
+    root.append(updateStatus, update, notes);
     S.PopupModal.display({ title: "Pinned Playlist Plus", content: root });
   }
 

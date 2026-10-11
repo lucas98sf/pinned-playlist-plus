@@ -4,6 +4,12 @@
   "preview": "assets/preview.svg",
   "main": "dist/pinned-playlist-plus.js",
   "readme": "README.md",
-  "authors": [{ "name": "lucas98sf", "url": "https://github.com/lucas98sf" }],
-  "tags": ["playlist", "liked songs", "buttons"]
+  "authors": [
+    {
+      "name": "lucas98sf",
+      "url": "https://github.com/lucas98sf"
+    }
+  ],
+  "tags": ["playlist", "liked songs", "buttons"],
+  "version": "1.1.0"
 }

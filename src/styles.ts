@@ -18,5 +18,6 @@ export const STYLES = `
     .ppp-save:hover { transform: scale(1.04); filter: brightness(1.06); }
     .ppp-save:active { transform: scale(1); }
     .ppp-save:focus-visible { outline: 3px solid var(--spice-text, #fff); outline-offset: 3px; }
+    .ppp-save:disabled { opacity: .5; cursor: wait; transform: none; }
     .ppp-settings p { margin: 0; line-height: 1.5; }
   `;

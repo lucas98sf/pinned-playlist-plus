@@ -12,6 +12,16 @@ If you previously installed manually, disable that copy before installing from M
 
 If you installed before the compiled bundle moved to `dist/`, remove the old entry from **Marketplace → Installed**, then install it again from **Extensions** and reload Spotify. Marketplace keeps the script URL from installation; opening Installed alone does not refresh a changed file path. The settings dialog displays the running version so you can confirm an update.
 
+## Versions and updates
+
+Open **Pinned Playlist Plus settings** to see the running version. Click **Check for updates**, then **Install vX.Y.Z**, then **Reload Spotify**. Checking is manual; no background requests are made. The updater selects stable GitHub releases, validates the tagged bundle and updates only this extension's Marketplace record. It also migrates the old root script path. Settings are preserved. If a download fails, the existing installation is kept.
+
+Use this settings updater for release updates. Marketplace's Installed tab checks repository activity but can retain its stored file path; it does not compare semantic versions. Tagged URLs avoid cached copies of the mutable main branch. The dist path stays stable in future releases.
+
+For a manual installation, run `./install.ps1 -Update` from the project folder or an extracted release ZIP. It downloads the latest stable release, verifies its SHA-256 checksum, and reapplies Spicetify. Avoid enabling a manual copy alongside the Marketplace copy.
+
+See [release notes](https://github.com/lucas98sf/pinned-playlist-plus/releases) and [CHANGELOG.md](CHANGELOG.md).
+
 ## Install on Windows
 
 With Spicetify already installed, run from this folder:
@@ -73,6 +83,19 @@ The internal API types describe the observed client surface. Spotify's private R
 Tests cover target selection, duplicates, destination failures, independent likes, track selection, DOM replacement, recycled rows, playlist membership, hiding destination rows, edit/pin events, stale responses, tooltip lifecycle and restoring the native UI. They use mocked Spotify APIs and jsdom; they do not save songs to a real account.
 
 The controls were also verified in the running Spotify client: both buttons render, the native save control is hidden, tooltips match native styling, clicks route to the correct API, an existing song shows the playlist check, and destination rows hide their playlist action. Account write methods were stubbed during click verification.
+
+## Releasing
+
+Versions follow **major.minor.patch**: breaking changes, compatible features, and fixes. `package.json` is the source of truth; npm's version hook synchronizes `manifest.json` and rebuilds the bundle. Never move an existing release tag or change the bundle path.
+
+From a clean main branch, update `CHANGELOG.md`, commit it, then run:
+
+```powershell
+npm version patch  # or minor / major
+git push origin main --follow-tags
+```
+
+The tag workflow validates the tag against package.json and manifest.json, runs checks and tests, verifies the committed bundle, and publishes a GitHub release with the extension, Windows ZIP and SHA256SUMS. A failed workflow does not publish a release. main remains installable through Marketplace; the settings updater installs tagged stable releases. After release, verify the running version in settings.
 
 ## Uninstall
 
