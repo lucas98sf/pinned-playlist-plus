@@ -1,6 +1,6 @@
 {
   "name": "Pinned Playlist Plus",
-  "description": "Save songs to your first pinned playlist with +, and use a separate heart for Liked Songs.",
+  "description": "Save to your first pinned playlist with +, and Liked Songs with ♥.",
   "preview": "assets/preview.svg",
   "main": "pinned-playlist-plus.js",
   "readme": "README.md",
