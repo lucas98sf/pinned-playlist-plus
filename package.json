@@ -1,6 +1,6 @@
 {
   "name": "pinned-playlist-plus",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "private": true,
   "description": "Configurable Spicetify song-saving buttons",
   "scripts": {
