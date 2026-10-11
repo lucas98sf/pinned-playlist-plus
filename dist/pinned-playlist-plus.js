@@ -62,36 +62,43 @@
     async function save(uri, config) {
       if (!TRACK.test(uri))
         throw new Error("This button supports Spotify songs only.");
-      const destinations = [];
+      const actions = [];
       if (config.mode !== "liked") {
         const playlist = await target(api);
         const key = `${playlist.uri}:${uri}`;
         if (!pendingSaves.has(key)) {
           const operation = (async () => {
             const existing = await api.PlaylistAPI.getItem(playlist.uri, uri);
-            if (!existing)
-              await api.PlaylistAPI.add(playlist.uri, [uri], { after: "end" });
+            if (existing) {
+              await api.PlaylistAPI.remove(playlist.uri, [{ uri, uid: [] }]);
+              return true;
+            }
+            await api.PlaylistAPI.add(playlist.uri, [uri], { after: "end" });
+            return false;
           })();
           pendingSaves.set(key, operation);
           operation.finally(() => pendingSaves.delete(key)).catch(() => {
           });
         }
-        await pendingSaves.get(key);
-        destinations.push(playlist.name || "playlist");
+        const removed = await pendingSaves.get(key);
+        actions.push({
+          action: removed ? "Removed from" : "Added to",
+          destination: playlist.name || "playlist"
+        });
       }
       if (config.mode !== "playlist") {
         try {
           await api.LibraryAPI.add({ uris: [uri] });
         } catch (error) {
-          if (destinations.length)
+          if (actions.length)
             throw new Error(
-              `Added to ${destinations[0]}, but Liked Songs failed: ${errorMessage(error)}`
+              `${actions[0].action} ${actions[0].destination}, but adding to Liked Songs failed: ${errorMessage(error)}`
             );
           throw error;
         }
-        destinations.push("Liked Songs");
+        actions.push({ action: "Added to", destination: "Liked Songs" });
       }
-      return destinations;
+      return actions;
     }
     async function toggleLike(uri) {
       const existing = pendingLikes.get(uri);
@@ -374,8 +381,10 @@
             updateHearts(uri, liked2);
             notify(liked2 ? "Added to Liked Songs" : "Removed from Liked Songs");
           } else {
-            const names = await actions.save(uri, snapshot);
-            notify(`Saved to ${names.join(" and ")}`);
+            const results = await actions.save(uri, snapshot);
+            notify(
+              results.map(({ action, destination }) => `${action} ${destination}`).join("; ")
+            );
             if (snapshot.mode === "both") updateHearts(uri, true);
           }
         } catch (error) {
@@ -421,7 +430,7 @@
           icon(entry.primary, present ? "check" : "plus");
           label(
             entry.primary,
-            present ? "In first pinned playlist" : config.mode === "both" ? "Add to first pinned playlist and Liked Songs" : "Add to first pinned playlist"
+            present ? "Remove from first pinned playlist" : config.mode === "both" ? "Add to first pinned playlist and Liked Songs" : "Add to first pinned playlist"
           );
         }
         entry.group.hidden = entry.primary.hidden && !entry.heart;

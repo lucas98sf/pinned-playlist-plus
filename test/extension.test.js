@@ -73,6 +73,10 @@ function platform() {
         calls.push(["playlist", uri, uris, position]);
         uris.forEach((track) => tracks.add(`${uri}:${track}`));
       },
+      remove: async (uri, items) => {
+        calls.push(["removePlaylist", uri, items]);
+        items.forEach((item) => tracks.delete(`${uri}:${item.uri}`));
+      },
     },
     LocalStorageAPI: {
       getItem: () => null,
@@ -112,7 +116,7 @@ test("fails clearly for absent pins and an uneditable first pin", async () => {
   await assert.rejects(target(api, settings()), /cannot add/);
 });
 
-test("playlist-only saves do not like tracks and avoid duplicates across concurrent clicks", async () => {
+test("playlist-only button toggles playlist membership and avoids concurrent duplicates", async () => {
   const { api, calls } = platform();
   const actions = createActions(api);
   await Promise.all([
@@ -121,12 +125,17 @@ test("playlist-only saves do not like tracks and avoid duplicates across concurr
   ]);
   await actions.save(song, settings());
   assert.equal(calls.filter((call) => call[0] === "playlist").length, 1);
+  assert.equal(calls.filter((call) => call[0] === "removePlaylist").length, 1);
   assert.equal(calls.filter((call) => call[0] === "like").length, 0);
   assert.deepEqual(calls.find((call) => call[0] === "playlist").slice(1), [
     playlist,
     [song],
     { after: "end" },
   ]);
+  assert.deepEqual(
+    calls.find((call) => call[0] === "removePlaylist").slice(1),
+    [playlist, [{ uri: song, uid: [] }]],
+  );
 });
 
 test("both destinations and independent heart toggling", async () => {
@@ -158,7 +167,7 @@ test("reports partial success accurately and never likes after a playlist failur
   };
   await assert.rejects(
     createActions(api).save(song, settings({ mode: "both" })),
-    /Added to First, but Liked Songs failed/,
+    /Added to First, but adding to Liked Songs failed/,
   );
 });
 
@@ -533,7 +542,7 @@ test("tooltips use the Spicetify renderer, stay synchronized and are destroyed w
   );
   tracks.add(`${playlist}:${song}`);
   await runtime.refreshStatus(true);
-  assert.equal(instances[0].content, "In first pinned playlist");
+  assert.equal(instances[0].content, "Remove from first pinned playlist");
   runtime.dispose();
   assert.ok(instances.every((instance) => instance.destroyed));
   dom.window.close();

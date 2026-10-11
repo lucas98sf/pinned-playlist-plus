@@ -104,8 +104,12 @@ export function start(S: SpicetifyHost, doc: Document = document): Runtime {
           updateHearts(uri, liked);
           notify(liked ? "Added to Liked Songs" : "Removed from Liked Songs");
         } else {
-          const names = await actions.save(uri, snapshot);
-          notify(`Saved to ${names.join(" and ")}`);
+          const results = await actions.save(uri, snapshot);
+          notify(
+            results
+              .map(({ action, destination }) => `${action} ${destination}`)
+              .join("; "),
+          );
           if (snapshot.mode === "both") updateHearts(uri, true);
         }
       } catch (error) {
@@ -168,7 +172,7 @@ export function start(S: SpicetifyHost, doc: Document = document): Runtime {
         label(
           entry.primary,
           present
-            ? "In first pinned playlist"
+            ? "Remove from first pinned playlist"
             : config.mode === "both"
               ? "Add to first pinned playlist and Liked Songs"
               : "Add to first pinned playlist",

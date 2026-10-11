@@ -39,6 +39,10 @@ export interface Platform {
   };
   PlaylistAPI: {
     getItem(playlist: string, track: string): Promise<unknown>;
+    remove(
+      playlist: string,
+      tracks: { uri: string; uid: string[] }[],
+    ): Promise<unknown>;
     add(
       playlist: string,
       tracks: string[],

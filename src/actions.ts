@@ -22,40 +22,50 @@ export async function target(api: Platform): Promise<LibraryItem> {
 }
 
 export function createActions(api: Platform) {
-  const pendingSaves = new Map<string, Promise<void>>();
+  const pendingSaves = new Map<string, Promise<boolean>>();
   const pendingLikes = new Map<string, Promise<boolean>>();
   async function save(uri: string, config: Settings) {
     if (!TRACK.test(uri))
       throw new Error("This button supports Spotify songs only.");
-    const destinations = [];
+    const actions: {
+      action: "Added to" | "Removed from";
+      destination: string;
+    }[] = [];
     if (config.mode !== "liked") {
       const playlist = await target(api);
       const key = `${playlist.uri}:${uri}`;
       if (!pendingSaves.has(key)) {
         const operation = (async () => {
           const existing = await api.PlaylistAPI.getItem(playlist.uri, uri);
-          if (!existing)
-            await api.PlaylistAPI.add(playlist.uri, [uri], { after: "end" });
+          if (existing) {
+            await api.PlaylistAPI.remove(playlist.uri, [{ uri, uid: [] }]);
+            return true;
+          }
+          await api.PlaylistAPI.add(playlist.uri, [uri], { after: "end" });
+          return false;
         })();
         pendingSaves.set(key, operation);
         operation.finally(() => pendingSaves.delete(key)).catch(() => {});
       }
-      await pendingSaves.get(key);
-      destinations.push(playlist.name || "playlist");
+      const removed = await pendingSaves.get(key)!;
+      actions.push({
+        action: removed ? "Removed from" : "Added to",
+        destination: playlist.name || "playlist",
+      });
     }
     if (config.mode !== "playlist") {
       try {
         await api.LibraryAPI.add({ uris: [uri] });
       } catch (error) {
-        if (destinations.length)
+        if (actions.length)
           throw new Error(
-            `Added to ${destinations[0]}, but Liked Songs failed: ${errorMessage(error)}`,
+            `${actions[0].action} ${actions[0].destination}, but adding to Liked Songs failed: ${errorMessage(error)}`,
           );
         throw error;
       }
-      destinations.push("Liked Songs");
+      actions.push({ action: "Added to", destination: "Liked Songs" });
     }
-    return destinations;
+    return actions;
   }
   async function toggleLike(uri: string): Promise<boolean> {
     const existing = pendingLikes.get(uri);
