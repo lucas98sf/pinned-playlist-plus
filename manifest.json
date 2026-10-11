@@ -1,0 +1,11 @@
+{
+  "name": "Pinned Playlist Plus",
+  "description": "Save songs to your first pinned playlist with +, and use a separate heart for Liked Songs.",
+  "preview": "assets/preview.svg",
+  "main": "pinned-playlist-plus.js",
+  "readme": "README.md",
+  "authors": [
+    { "name": "Lucas Ferreira", "url": "https://github.com/lucas98sf" }
+  ],
+  "tags": ["playlist", "liked songs", "buttons"]
+}

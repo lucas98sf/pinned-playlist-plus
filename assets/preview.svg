@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" rx="28" fill="#121212"/>
+  <rect x="64" y="64" width="84" height="84" rx="22" fill="#1ed760"/>
+  <g transform="translate(82 82) scale(3)" fill="#121212">
+    <path d="M1 2h12v1.5H1zm0 4h7v1.5H1zm0 4h5v1.5H1zm10-3h1.5v3H15v1.5h-2.5V14H11v-2.5H8.5V10H11z"/>
+  </g>
+  <g font-family="Arial, Helvetica, sans-serif">
+    <text x="176" y="100" fill="#b3b3b3" font-size="22" letter-spacing="3">SPICETIFY EXTENSION</text>
+    <text x="176" y="144" fill="#fff" font-size="38" font-weight="700">Pinned Playlist Plus</text>
+    <text x="64" y="248" fill="#fff" font-size="48" font-weight="700">Your first pinned playlist.</text>
+    <text x="64" y="307" fill="#b3b3b3" font-size="30">One click to save. A heart to like.</text>
+    <rect x="64" y="356" width="1072" height="172" rx="16" fill="#242424"/>
+    <rect x="92" y="390" width="104" height="104" rx="8" fill="#363636"/>
+    <g transform="translate(126 414)" fill="none" stroke="#b3b3b3" stroke-width="5" stroke-linecap="round">
+      <path d="M12 0v43m0-43 26-5v38"/>
+      <ellipse cx="4" cy="44" rx="9" ry="6" fill="#b3b3b3" stroke="none"/>
+      <ellipse cx="30" cy="34" rx="9" ry="6" fill="#b3b3b3" stroke="none"/>
+    </g>
+    <text x="224" y="427" fill="#fff" font-size="28" font-weight="700">A song you want to keep</text>
+    <text x="224" y="469" fill="#b3b3b3" font-size="22">Save to your playlist and like independently</text>
+    <g transform="translate(940 420) scale(3)" fill="#1ed760">
+      <path fill-rule="evenodd" d="M8 .5a7.5 7.5 0 1 0 0 15A7.5 7.5 0 0 0 8 .5ZM6.75 11.1l-3-3 1.06-1.06 1.94 1.94 4.44-4.44 1.06 1.06-5.5 5.5Z"/>
+    </g>
+    <g transform="translate(1020 420) scale(3)" fill="#b3b3b3">
+      <path d="M8 14.4 1.7 8.1C-2 4.4 3.6-1.2 8 3.2c4.4-4.4 10 1.2 6.3 4.9L8 14.4Zm0-2.1 5.2-5.2c2.4-2.4-1.1-6-3.7-3.4L8 5.2 6.5 3.7C3.9 1.1.4 4.7 2.8 7.1Z"/>
+    </g>
+    <text x="64" y="580" fill="#b3b3b3" font-size="21">Configurable save modes · Independent likes · Native-style controls</text>
+  </g>
+</svg>

@@ -1,0 +1,30 @@
+{
+  "name": "pinned-playlist-plus",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Configurable Spicetify song-saving buttons",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "typecheck": "tsc --noEmit",
+    "check": "npm run typecheck && npm run format:check && npm run build && node --check pinned-playlist-plus.js",
+    "pretest": "npm run build",
+    "test": "node --test",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "esbuild": "^0.28.2",
+    "jsdom": "^27.0.0",
+    "prettier": "^3.9.10",
+    "typescript": "^7.0.2"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">=24"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lucas98sf/pinned-playlist-plus.git"
+  }
+}
