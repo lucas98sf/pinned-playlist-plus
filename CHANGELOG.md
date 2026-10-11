@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.3
+
+- Bold only the playlist name in settings.
+- Document how to update older Marketplace installations and when clearing cache helps.
+
 ## 1.1.2
 
 - Fresh Marketplace installations use the tagged release instead of a cached main-branch bundle.

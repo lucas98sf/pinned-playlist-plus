@@ -22,6 +22,14 @@ For a manual installation, run `./install.ps1 -Update` from the project folder o
 
 See [release notes](https://github.com/lucas98sf/pinned-playlist-plus/releases) and [CHANGELOG.md](CHANGELOG.md).
 
+### Forcing an older Marketplace installation to update
+
+If settings already shows a version, use **Check for updates → Install → Reload Spotify**. No cache deletion is needed.
+
+For older copies without an update control, remove this extension from **Marketplace → Installed**, fully quit Spotify (including its tray process), reopen it, and install from **Extensions** again. Quitting clears Marketplace's session manifest cache. Confirm the running version in the extension's settings afterward.
+
+Deleting Spotify's music cache does not purge jsDelivr's server cache. New installations now use a release tag to avoid that stale main-branch URL. If Marketplace still serves an old card, wait for the remote manifest cache to refresh. For an immediate alternative, remove the Marketplace copy, download the latest release ZIP, extract it, and run `./install.ps1`; that installs the version from the ZIP manually. Do not keep both copies enabled.
+
 ## Install on Windows
 
 With Spicetify already installed, run from this folder:

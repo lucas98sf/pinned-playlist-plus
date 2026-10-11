@@ -353,7 +353,12 @@
       status.textContent = "First pinned playlist: checking\u2026";
       root.append(status);
       target(api).then((result) => {
-        status.textContent = `First pinned playlist: ${result.name || "Unnamed playlist"}`;
+        const name = doc.createElement("strong");
+        name.textContent = result.name || "Unnamed playlist";
+        status.replaceChildren(
+          doc.createTextNode("First pinned playlist: "),
+          name
+        );
       }).catch((error) => {
         status.textContent = errorMessage(error);
       });
