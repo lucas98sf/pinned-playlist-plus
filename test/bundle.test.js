@@ -8,7 +8,7 @@ test("the installable browser bundle waits for Spicetify, starts once and restor
     '<div role="row" data-uri="spotify:track:abc"><button class="main-addButton-button">+</button></div>',
     { runScripts: "outside-only" },
   );
-  const source = readFileSync("pinned-playlist-plus.js", "utf8");
+  const source = readFileSync("dist/pinned-playlist-plus.js", "utf8");
   const retries = [];
   dom.window.setTimeout = (callback) => {
     retries.push(callback);

@@ -23,4 +23,4 @@ jobs:
       - run: npm run check
       - run: npm test
       - name: Verify committed Marketplace bundle matches TypeScript sources
-        run: git diff --exit-code -- pinned-playlist-plus.js
+        run: git diff --exit-code -- dist/pinned-playlist-plus.js

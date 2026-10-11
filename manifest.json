@@ -2,7 +2,7 @@
   "name": "Pinned Playlist Plus",
   "description": "Save to your first pinned playlist with +, and Liked Songs with ♥.",
   "preview": "assets/preview.svg",
-  "main": "pinned-playlist-plus.js",
+  "main": "dist/pinned-playlist-plus.js",
   "readme": "README.md",
   "authors": [{ "name": "lucas98sf", "url": "https://github.com/lucas98sf" }],
   "tags": ["playlist", "liked songs", "buttons"]

@@ -6,7 +6,7 @@
   "scripts": {
     "build": "node scripts/build.mjs",
     "typecheck": "tsc --noEmit",
-    "check": "npm run typecheck && npm run format:check && npm run build && node --check pinned-playlist-plus.js",
+    "check": "npm run typecheck && npm run format:check && npm run build && node --check dist/pinned-playlist-plus.js",
     "pretest": "npm run build",
     "test": "node --test",
     "format": "prettier --write .",

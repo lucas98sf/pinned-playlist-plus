@@ -1,5 +1,5 @@
 node_modules/
 .debug/
 .test-build/
-pinned-playlist-plus.js
+dist/*.js
 package-lock.json

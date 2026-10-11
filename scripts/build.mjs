@@ -1,9 +1,10 @@
 import { build } from "esbuild";
 import { mkdir } from "node:fs/promises";
 
+await mkdir("dist", { recursive: true });
 await build({
   entryPoints: ["src/index.ts"],
-  outfile: "pinned-playlist-plus.js",
+  outfile: "dist/pinned-playlist-plus.js",
   bundle: true,
   format: "iife",
   platform: "browser",

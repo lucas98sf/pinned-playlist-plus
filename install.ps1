@@ -10,7 +10,11 @@ if ($Uninstall) {
     & spicetify config extensions "$extensionName-"
 } else {
     New-Item -ItemType Directory -Path $extensionDirectory -Force | Out-Null
-    Copy-Item -LiteralPath (Join-Path $PSScriptRoot $extensionName) -Destination (Join-Path $extensionDirectory $extensionName) -Force
+    $bundlePath = Join-Path $PSScriptRoot "dist/$extensionName"
+    if (-not (Test-Path -LiteralPath $bundlePath)) {
+        throw 'The compiled extension was not found. Run npm run build first.'
+    }
+    Copy-Item -LiteralPath $bundlePath -Destination (Join-Path $extensionDirectory $extensionName) -Force
     & spicetify config extensions $extensionName
 }
 if ($LASTEXITCODE -ne 0) { throw 'Could not update the Spicetify extension configuration.' }

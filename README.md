@@ -44,7 +44,7 @@ API reference: [Spicetify Platform](https://spicetify.app/docs/development/api-w
 
 ## Development
 
-Requires Node.js 24 or newer. TypeScript in `src/` is the source of truth; the root JavaScript file is the generated standalone Marketplace bundle. It is checked in so users can install without Node.js or a build step.
+Requires Node.js 24 or newer. TypeScript in `src/` is the source of truth. The generated standalone JavaScript bundle lives in `dist/` for Marketplace and manual installation; it is checked in so users can install without Node.js or a build step. The repository root contains no generated JavaScript file.
 
 ```powershell
 npm ci
@@ -53,7 +53,7 @@ npm test
 npm run build
 ```
 
-`npm run check` runs strict type checking, formatting checks, and compilation. Use `npm run format` to format changes. After editing source, rebuild and commit the generated JavaScript with it. CI checks Windows and Linux and rejects a bundle that differs from its source.
+`npm run check` runs strict type checking, formatting checks, and compilation. Use `npm run format` to format changes. After editing source, rebuild and commit the generated bundle in `dist/` with it. CI checks Windows and Linux and rejects a bundle that differs from its source.
 
 | Module                              | Responsibility                                              |
 | ----------------------------------- | ----------------------------------------------------------- |
