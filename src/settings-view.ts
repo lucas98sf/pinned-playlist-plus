@@ -123,7 +123,7 @@ export function createSettingsView(
     updateStatus.setAttribute("role", "status");
     const update = doc.createElement("button");
     update.type = "button";
-    update.className = "ppp-save";
+    update.className = "ppp-update";
     update.textContent = "Check for updates";
     let release: Release | null = null;
     let installed = false;
@@ -157,7 +157,10 @@ export function createSettingsView(
     notes.target = "_blank";
     notes.rel = "noopener noreferrer";
     notes.textContent = "Release notes";
-    root.append(updateStatus, update, notes);
+    const updateActions = doc.createElement("div");
+    updateActions.className = "ppp-update-actions";
+    updateActions.append(update, notes);
+    root.append(updateStatus, updateActions);
     S.PopupModal.display({ title: "Pinned Playlist Plus", content: root });
   }
 

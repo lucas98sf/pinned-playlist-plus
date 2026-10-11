@@ -19,5 +19,11 @@ export const STYLES = `
     .ppp-save:active { transform: scale(1); }
     .ppp-save:focus-visible { outline: 3px solid var(--spice-text, #fff); outline-offset: 3px; }
     .ppp-save:disabled { opacity: .5; cursor: wait; transform: none; }
+    .ppp-update-actions { display: flex; align-items: center; gap: 16px; font-size: 13px; }
+    .ppp-update { background: transparent; border: 0; padding: 0; color: var(--spice-subtext, #b3b3b3); font: inherit; cursor: pointer; }
+    .ppp-update:hover { color: var(--spice-text, #fff); text-decoration: underline; }
+    .ppp-update:focus-visible { outline: 2px solid currentColor; outline-offset: 4px; }
+    .ppp-update:disabled { opacity: .5; cursor: wait; }
+    .ppp-update-actions a { color: var(--spice-subtext, #b3b3b3); }
     .ppp-settings p { margin: 0; line-height: 1.5; }
   `;

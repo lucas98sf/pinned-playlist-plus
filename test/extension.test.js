@@ -571,3 +571,55 @@ test("LibraryAPI.contains emitting update_item does not cancel playlist status r
   runtime.dispose();
   dom.window.close();
 });
+
+test("remove and readd render confirmed membership despite delayed Spotify status reads", async () => {
+  const { dom, S, api, tracks } = stateFixture(
+    '<div data-testid="now-playing-widget"><button class="main-addButton-button"></button></div>',
+  );
+  tracks.add(`${playlist}:${song}`);
+  const getItem = api.PlaylistAPI.getItem;
+  let actionRead = false;
+  let stalePresent = true;
+  api.PlaylistAPI.getItem = async (...args) => {
+    if (actionRead) {
+      actionRead = false;
+      return getItem(...args);
+    }
+    return stalePresent ? { uri: song, uid: `row-${song}` } : null;
+  };
+  const runtime = start(S, dom.window.document);
+  const now = Date.now;
+  try {
+    await runtime.refreshStatus(true);
+    const button = dom.window.document.querySelector(".ppp-button");
+    assert.equal(button.dataset.pppIcon, "check");
+    actionRead = true;
+    button.click();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.equal(tracks.has(`${playlist}:${song}`), false);
+    assert.equal(button.dataset.pppIcon, "plus");
+    assert.equal(button.getAttribute("aria-pressed"), "false");
+    await runtime.refreshStatus(true);
+    assert.equal(button.dataset.pppIcon, "plus");
+    stalePresent = false;
+    actionRead = true;
+    button.click();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.equal(tracks.has(`${playlist}:${song}`), true);
+    assert.equal(button.dataset.pppIcon, "check");
+    assert.equal(
+      button.getAttribute("aria-label"),
+      "Remove from first pinned playlist",
+    );
+    await runtime.refreshStatus(true);
+    assert.equal(button.dataset.pppIcon, "check");
+    // After the short consistency window, external edits must still refresh.
+    Date.now = () => now() + 6000;
+    await runtime.refreshStatus(true);
+    assert.equal(button.dataset.pppIcon, "plus");
+  } finally {
+    Date.now = now;
+    runtime.dispose();
+    dom.window.close();
+  }
+});

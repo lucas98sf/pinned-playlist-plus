@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.1
+
+- Update playlist checks immediately after confirmed removal and readdition.
+- Prevent delayed Spotify membership reads from undoing a recent successful action.
+- Use a subtle text button for updates in settings.
+
 ## 1.1.0
 
 - Check for updates, install a stable release and reload from settings.

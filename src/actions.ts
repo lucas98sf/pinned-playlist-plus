@@ -24,7 +24,11 @@ export async function target(api: Platform): Promise<LibraryItem> {
 export function createActions(api: Platform) {
   const pendingSaves = new Map<string, Promise<boolean>>();
   const pendingLikes = new Map<string, Promise<boolean>>();
-  async function save(uri: string, config: Settings) {
+  async function save(
+    uri: string,
+    config: Settings,
+    onPlaylistChange?: (playlist: LibraryItem, present: boolean) => void,
+  ) {
     if (!TRACK.test(uri))
       throw new Error("This button supports Spotify songs only.");
     const actions: {
@@ -54,6 +58,7 @@ export function createActions(api: Platform) {
         operation.finally(() => pendingSaves.delete(key)).catch(() => {});
       }
       const removed = await pendingSaves.get(key)!;
+      onPlaylistChange?.(playlist, !removed);
       actions.push({
         action: removed ? "Removed from" : "Added to",
         destination: playlist.name || "playlist",

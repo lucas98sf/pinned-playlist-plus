@@ -28,6 +28,7 @@ export function start(S: SpicetifyHost, doc: Document = document): Runtime {
   const actions = createActions(api);
   const managed = new Map<HTMLButtonElement, ManagedControl>();
   const membership = new Map<string, { present: boolean; time: number }>();
+  const confirmedUntil = new Map<string, number>();
   const liked = new Map<string, boolean>();
   const likedVersions = new Map<string, number>();
   const unsubscribe: Cancel[] = [];
@@ -104,7 +105,23 @@ export function start(S: SpicetifyHost, doc: Document = document): Runtime {
           updateHearts(uri, liked);
           notify(liked ? "Added to Liked Songs" : "Removed from Liked Songs");
         } else {
-          const results = await actions.save(uri, snapshot);
+          const results = await actions.save(
+            uri,
+            snapshot,
+            (playlist, present) => {
+              // Spotify's membership index can lag behind a successful write.
+              // Render the confirmed result immediately and invalidate older reads.
+              statusGeneration++;
+              if (!activeTarget) {
+                activeTarget = playlist;
+                watchPlaylist(playlist.uri);
+              }
+              if (activeTarget.uri !== playlist.uri) return;
+              membership.set(uri, { present, time: Date.now() });
+              confirmedUntil.set(uri, Date.now() + 5000);
+              renderStatus();
+            },
+          );
           notify(
             results
               .map(({ action, destination }) => `${action} ${destination}`)
@@ -222,6 +239,7 @@ export function start(S: SpicetifyHost, doc: Document = document): Runtime {
       if (disposed || generation !== statusGeneration) return;
       if (playlist?.uri !== activeTarget?.uri) {
         membership.clear();
+        confirmedUntil.clear();
         activeTarget = playlist;
         watchPlaylist(playlist?.uri);
       }
@@ -231,6 +249,7 @@ export function start(S: SpicetifyHost, doc: Document = document): Runtime {
       const queue = uris.filter(
         (uri) =>
           playlist &&
+          Date.now() >= (confirmedUntil.get(uri) || 0) &&
           (force ||
             !membership.has(uri) ||
             Date.now() - membership.get(uri)!.time > 30000),
@@ -260,6 +279,7 @@ export function start(S: SpicetifyHost, doc: Document = document): Runtime {
       if (!resolvedTarget && !disposed && generation === statusGeneration) {
         activeTarget = null;
         membership.clear();
+        confirmedUntil.clear();
         watchPlaylist(null);
         renderStatus();
       }
@@ -354,6 +374,7 @@ export function start(S: SpicetifyHost, doc: Document = document): Runtime {
   unsubscribe.push(
     listen(libraryEvents, "update_pin", () => {
       membership.clear();
+      confirmedUntil.clear();
       void refreshStatus(true);
     }),
   );

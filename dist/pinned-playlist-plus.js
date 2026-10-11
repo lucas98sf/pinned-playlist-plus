@@ -63,7 +63,7 @@
   function createActions(api) {
     const pendingSaves = /* @__PURE__ */ new Map();
     const pendingLikes = /* @__PURE__ */ new Map();
-    async function save(uri, config) {
+    async function save(uri, config, onPlaylistChange) {
       if (!TRACK.test(uri))
         throw new Error("This button supports Spotify songs only.");
       const actions = [];
@@ -91,6 +91,7 @@
           });
         }
         const removed = await pendingSaves.get(key);
+        onPlaylistChange?.(playlist, !removed);
         actions.push({
           action: removed ? "Removed from" : "Added to",
           destination: playlist.name || "playlist"
@@ -405,7 +406,7 @@
       updateStatus.setAttribute("role", "status");
       const update = doc.createElement("button");
       update.type = "button";
-      update.className = "ppp-save";
+      update.className = "ppp-update";
       update.textContent = "Check for updates";
       let release = null;
       let installed = false;
@@ -437,7 +438,10 @@
       notes.target = "_blank";
       notes.rel = "noopener noreferrer";
       notes.textContent = "Release notes";
-      root.append(updateStatus, update, notes);
+      const updateActions = doc.createElement("div");
+      updateActions.className = "ppp-update-actions";
+      updateActions.append(update, notes);
+      root.append(updateStatus, updateActions);
       S.PopupModal.display({ title: "Pinned Playlist Plus", content: root });
     }
     return {
@@ -471,6 +475,12 @@
     .ppp-save:active { transform: scale(1); }
     .ppp-save:focus-visible { outline: 3px solid var(--spice-text, #fff); outline-offset: 3px; }
     .ppp-save:disabled { opacity: .5; cursor: wait; transform: none; }
+    .ppp-update-actions { display: flex; align-items: center; gap: 16px; font-size: 13px; }
+    .ppp-update { background: transparent; border: 0; padding: 0; color: var(--spice-subtext, #b3b3b3); font: inherit; cursor: pointer; }
+    .ppp-update:hover { color: var(--spice-text, #fff); text-decoration: underline; }
+    .ppp-update:focus-visible { outline: 2px solid currentColor; outline-offset: 4px; }
+    .ppp-update:disabled { opacity: .5; cursor: wait; }
+    .ppp-update-actions a { color: var(--spice-subtext, #b3b3b3); }
     .ppp-settings p { margin: 0; line-height: 1.5; }
   `;
 
@@ -487,6 +497,7 @@
     const actions = createActions(api);
     const managed = /* @__PURE__ */ new Map();
     const membership = /* @__PURE__ */ new Map();
+    const confirmedUntil = /* @__PURE__ */ new Map();
     const liked = /* @__PURE__ */ new Map();
     const likedVersions = /* @__PURE__ */ new Map();
     const unsubscribe = [];
@@ -558,7 +569,21 @@
             updateHearts(uri, liked2);
             notify(liked2 ? "Added to Liked Songs" : "Removed from Liked Songs");
           } else {
-            const results = await actions.save(uri, snapshot);
+            const results = await actions.save(
+              uri,
+              snapshot,
+              (playlist, present) => {
+                statusGeneration++;
+                if (!activeTarget) {
+                  activeTarget = playlist;
+                  watchPlaylist(playlist.uri);
+                }
+                if (activeTarget.uri !== playlist.uri) return;
+                membership.set(uri, { present, time: Date.now() });
+                confirmedUntil.set(uri, Date.now() + 5e3);
+                renderStatus();
+              }
+            );
             notify(
               results.map(({ action, destination }) => `${action} ${destination}`).join("; ")
             );
@@ -646,12 +671,13 @@
         if (disposed || generation !== statusGeneration) return;
         if (playlist?.uri !== activeTarget?.uri) {
           membership.clear();
+          confirmedUntil.clear();
           activeTarget = playlist;
           watchPlaylist(playlist?.uri);
         }
         const found = /* @__PURE__ */ new Map();
         const queue = uris.filter(
-          (uri) => playlist && (force || !membership.has(uri) || Date.now() - membership.get(uri).time > 3e4)
+          (uri) => playlist && Date.now() >= (confirmedUntil.get(uri) || 0) && (force || !membership.has(uri) || Date.now() - membership.get(uri).time > 3e4)
         );
         const readPlaylist = Promise.all(
           Array.from({ length: Math.min(4, queue.length) }, async () => {
@@ -678,6 +704,7 @@
         if (!resolvedTarget && !disposed && generation === statusGeneration) {
           activeTarget = null;
           membership.clear();
+          confirmedUntil.clear();
           watchPlaylist(null);
           renderStatus();
         }
@@ -763,6 +790,7 @@
     unsubscribe.push(
       listen(libraryEvents, "update_pin", () => {
         membership.clear();
+        confirmedUntil.clear();
         void refreshStatus(true);
       })
     );
