@@ -20,7 +20,7 @@ jobs:
         env:
           RELEASE_TAG: ${{ github.ref_name }}
         run: |
-          node --input-type=module -e 'import fs from "node:fs"; const p=JSON.parse(fs.readFileSync("package.json")); const m=JSON.parse(fs.readFileSync("manifest.json")); if(process.env.RELEASE_TAG !== "v"+p.version || m.version !== p.version) throw Error("Release versions do not match");'
+          node --input-type=module -e 'import fs from "node:fs"; const p=JSON.parse(fs.readFileSync("package.json")); const m=JSON.parse(fs.readFileSync("manifest.json")); if(process.env.RELEASE_TAG !== "v"+p.version || m.version !== p.version || m.branch !== process.env.RELEASE_TAG) throw Error("Release versions do not match");'
           git diff --exit-code -- dist/pinned-playlist-plus.js
       - name: Package and publish
         env:

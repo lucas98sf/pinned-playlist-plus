@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.2
+
+- Fresh Marketplace installations use the tagged release instead of a cached main-branch bundle.
+- Synchronize the publication tag automatically when bumping the version.
+
 ## 1.1.1
 
 - Update playlist checks immediately after confirmed removal and readdition.

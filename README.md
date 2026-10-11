@@ -16,7 +16,7 @@ If you installed before the compiled bundle moved to `dist/`, remove the old ent
 
 Open **Pinned Playlist Plus settings** to see the running version. Click **Check for updates**, then **Install vX.Y.Z**, then **Reload Spotify**. Checking is manual; no background requests are made. The updater selects stable GitHub releases, validates the tagged bundle and updates only this extension's Marketplace record. It also migrates the old root script path. Settings are preserved. If a download fails, the existing installation is kept.
 
-Use this settings updater for release updates. Marketplace's Installed tab checks repository activity but can retain its stored file path; it does not compare semantic versions. Tagged URLs avoid cached copies of the mutable main branch. The dist path stays stable in future releases.
+Fresh Marketplace installs use the release tag specified by the manifest. Use the settings updater for subsequent release updates. Marketplace's Installed tab checks repository activity but can retain its stored file path; it does not compare semantic versions. Tagged URLs avoid cached copies of the mutable main branch. The dist path stays stable in future releases. If Marketplace shows an older card after a release, restart Spotify to clear its session manifest cache before reinstalling.
 
 For a manual installation, run `./install.ps1 -Update` from the project folder or an extracted release ZIP. It downloads the latest stable release, verifies its SHA-256 checksum, and reapplies Spicetify. Avoid enabling a manual copy alongside the Marketplace copy.
 
@@ -95,7 +95,7 @@ npm version patch  # or minor / major
 git push origin main --follow-tags
 ```
 
-The tag workflow validates the tag against package.json and manifest.json, runs checks and tests, verifies the committed bundle, and publishes a GitHub release with the extension, Windows ZIP and SHA256SUMS. A failed workflow does not publish a release. main remains installable through Marketplace; the settings updater installs tagged stable releases. After release, verify the running version in settings.
+The tag workflow validates the tag against package.json and manifest.json, runs checks and tests, verifies the committed bundle, and publishes a GitHub release with the extension, Windows ZIP and SHA256SUMS. A failed workflow does not publish a release. The manifest on main selects that release tag for Marketplace installations; the settings updater installs subsequent tagged stable releases. After release, verify the running version in settings.
 
 ## Uninstall
 
