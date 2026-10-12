@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.4
+
+- Combine the separate Liked Songs button and icon options into one ♥ button toggle.
+- Preserve the existing preference for showing the separate button; Liked Songs always uses ♥.
+
 ## 1.1.3
 
 - Bold only the playlist name in settings.

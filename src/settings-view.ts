@@ -57,8 +57,10 @@ export function createSettingsView(
     mode.value = getSettings().mode;
     modeLabel.append(mode);
     root.append(modeLabel);
-    toggle("separateHeart", "Show a separate Liked Songs button alongside +");
-    toggle("heartIcon", "Use a heart icon for Liked Songs");
+    toggle(
+      "separateHeart",
+      "Show a separate ♥ button for Liked Songs alongside +",
+    );
     const status = doc.createElement("p");
     status.setAttribute("role", "status");
     status.textContent = "First pinned playlist: checking…";
@@ -81,7 +83,6 @@ export function createSettingsView(
           enabled: controls.enabled.checked,
           mode: mode.value,
           separateHeart: controls.separateHeart.checked,
-          heartIcon: controls.heartIcon.checked,
         });
         S.PopupModal.hide();
         S.showNotification("Pinned Playlist Plus settings saved");

@@ -81,7 +81,7 @@ export function start(S: SpicetifyHost, doc: Document = document): Runtime {
         },
       });
     const isHeart = kind === "heart" || config.mode === "liked";
-    icon(button, isHeart && config.heartIcon ? "heart" : "plus");
+    icon(button, isHeart ? "heart" : "plus");
     label(
       button,
       isHeart
@@ -152,16 +152,7 @@ export function start(S: SpicetifyHost, doc: Document = document): Runtime {
       const heart = config.mode === "liked" ? entry.primary : entry.heart;
       if (!heart) continue;
       heart.setAttribute("aria-pressed", String(value));
-      icon(
-        heart,
-        config.heartIcon
-          ? value
-            ? "heartFilled"
-            : "heart"
-          : value
-            ? "check"
-            : "plus",
-      );
+      icon(heart, value ? "heartFilled" : "heart");
       label(heart, value ? "Remove from Liked Songs" : "Add to Liked Songs");
     }
   }

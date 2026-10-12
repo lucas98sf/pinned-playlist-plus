@@ -45,8 +45,7 @@ Open Spotify's profile menu → **Pinned Playlist Plus settings**.
 - **Enable:** turning it off restores Spotify's original buttons immediately.
 - **Save mode:** first pinned playlist only (default), first pinned playlist AND Liked Songs, or Liked Songs only.
 - **Destination:** always the first pinned playlist in Your Library. Reorder your pins to change it. Settings display its name automatically.
-- **Separate Liked Songs button:** show both + and an independent Liked Songs control (default on).
-- **♥ icon:** use ♥ for Liked Songs (default on), or a plus/check.
+- **Separate ♥ button:** show an independent ♥ for Liked Songs alongside + (default on). Liked Songs always uses ♥.
 
 Click **+** to add a song to the first pinned playlist; click its check again to remove it. ♥ toggles Liked Songs independently. In both mode, **+** adds the song to both destinations, and clicking the check removes it from the playlist while keeping it in Liked Songs. If there is no pinned playlist or the first pin is not editable, the extension shows an error rather than changing the destination. Partial success is reported if one destination works and the other fails.
 

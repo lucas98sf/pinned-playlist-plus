@@ -6,7 +6,6 @@ export const DEFAULTS: Settings = {
   enabled: true,
   mode: "playlist",
   separateHeart: true,
-  heartIcon: true,
 };
 export const TRACK = /^spotify:track:[A-Za-z0-9]+$/;
 export const PLAYLIST = /^spotify:playlist:[A-Za-z0-9]+$/;

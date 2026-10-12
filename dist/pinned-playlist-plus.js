@@ -10,8 +10,7 @@
   var DEFAULTS = {
     enabled: true,
     mode: "playlist",
-    separateHeart: true,
-    heartIcon: true
+    separateHeart: true
   };
   var TRACK = /^spotify:track:[A-Za-z0-9]+$/;
   var PLAYLIST = /^spotify:playlist:[A-Za-z0-9]+$/;
@@ -28,7 +27,7 @@
     const result = { ...DEFAULTS };
     if (value && typeof value === "object") {
       const stored = value;
-      for (const key of ["enabled", "separateHeart", "heartIcon"]) {
+      for (const key of ["enabled", "separateHeart"]) {
         if (typeof stored[key] === "boolean") result[key] = stored[key];
       }
       if (stored.mode === "playlist" || stored.mode === "both" || stored.mode === "liked")
@@ -346,8 +345,10 @@
       mode.value = getSettings().mode;
       modeLabel.append(mode);
       root.append(modeLabel);
-      toggle("separateHeart", "Show a separate Liked Songs button alongside +");
-      toggle("heartIcon", "Use a heart icon for Liked Songs");
+      toggle(
+        "separateHeart",
+        "Show a separate \u2665 button for Liked Songs alongside +"
+      );
       const status = doc.createElement("p");
       status.setAttribute("role", "status");
       status.textContent = "First pinned playlist: checking\u2026";
@@ -367,8 +368,7 @@
           configure({
             enabled: controls.enabled.checked,
             mode: mode.value,
-            separateHeart: controls.separateHeart.checked,
-            heartIcon: controls.heartIcon.checked
+            separateHeart: controls.separateHeart.checked
           });
           S.PopupModal.hide();
           S.showNotification("Pinned Playlist Plus settings saved");
@@ -555,7 +555,7 @@
           }
         });
       const isHeart = kind === "heart" || config.mode === "liked";
-      icon(button, isHeart && config.heartIcon ? "heart" : "plus");
+      icon(button, isHeart ? "heart" : "plus");
       label(
         button,
         isHeart ? "Add to Liked Songs" : config.mode === "both" ? "Add to first pinned playlist and Liked Songs" : "Add to first pinned playlist"
@@ -615,10 +615,7 @@
         const heart = config.mode === "liked" ? entry.primary : entry.heart;
         if (!heart) continue;
         heart.setAttribute("aria-pressed", String(value));
-        icon(
-          heart,
-          config.heartIcon ? value ? "heartFilled" : "heart" : value ? "check" : "plus"
-        );
+        icon(heart, value ? "heartFilled" : "heart");
         label(heart, value ? "Remove from Liked Songs" : "Add to Liked Songs");
       }
     }

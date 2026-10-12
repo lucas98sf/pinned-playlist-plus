@@ -4,7 +4,6 @@ export interface Settings {
   enabled: boolean;
   mode: SaveMode;
   separateHeart: boolean;
-  heartIcon: boolean;
 }
 export type ToggleKey = Exclude<keyof Settings, "mode">;
 export interface LibraryItem {
