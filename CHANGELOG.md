@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.5
+
+- Remove the redundant Liked Songs-only mode; disable the extension for Spotify's default behavior.
+- Migrate existing Liked Songs-only settings to the extension being disabled.
+
 ## 1.1.4
 
 - Combine the separate Liked Songs button and icon options into one ♥ button toggle.

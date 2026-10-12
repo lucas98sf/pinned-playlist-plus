@@ -20,9 +20,13 @@ test("the installable browser bundle waits for Spicetify, starts once and restor
   let registrations = 0;
   dom.window.Spicetify = {
     Platform: {
-      LocalStorageAPI: { getItem: () => ({ mode: "liked" }), setItem() {} },
+      LocalStorageAPI: { getItem: () => ({ mode: "playlist" }), setItem() {} },
       LibraryAPI: {
-        getContents: async () => ({ items: [] }),
+        getContents: async () => ({
+          items: [
+            { uri: "spotify:playlist:first", pinned: true, canAddTo: true },
+          ],
+        }),
         contains: async () => [false],
       },
       PlaylistAPI: { getItem: async () => null },

@@ -43,7 +43,7 @@ This copies the extension into the configured Spicetify Extensions directory, en
 Open Spotify's profile menu → **Pinned Playlist Plus settings**.
 
 - **Enable:** turning it off restores Spotify's original buttons immediately.
-- **Save mode:** first pinned playlist only (default), first pinned playlist AND Liked Songs, or Liked Songs only.
+- **Save mode:** first pinned playlist only (default), or first pinned playlist AND Liked Songs. Disable the extension for Spotify's default behavior.
 - **Destination:** always the first pinned playlist in Your Library. Reorder your pins to change it. Settings display its name automatically.
 - **Separate ♥ button:** show an independent ♥ for Liked Songs alongside + (default on). Liked Songs always uses ♥.
 

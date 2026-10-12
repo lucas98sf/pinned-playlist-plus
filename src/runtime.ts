@@ -80,7 +80,7 @@ export function start(S: SpicetifyHost, doc: Document = document): Runtime {
           return rendered;
         },
       });
-    const isHeart = kind === "heart" || config.mode === "liked";
+    const isHeart = kind === "heart";
     icon(button, isHeart ? "heart" : "plus");
     label(
       button,
@@ -149,7 +149,7 @@ export function start(S: SpicetifyHost, doc: Document = document): Runtime {
     liked.set(uri, value);
     for (const entry of managed.values()) {
       if (entry.uri !== uri) continue;
-      const heart = config.mode === "liked" ? entry.primary : entry.heart;
+      const heart = entry.heart;
       if (!heart) continue;
       heart.setAttribute("aria-pressed", String(value));
       icon(heart, value ? "heartFilled" : "heart");
@@ -162,30 +162,28 @@ export function start(S: SpicetifyHost, doc: Document = document): Runtime {
     const onTargetPage =
       page && activeTarget?.uri === `spotify:playlist:${page[1]}`;
     for (const [original, entry] of managed) {
-      if (config.mode !== "liked") {
-        const present = membership.get(entry.uri)?.present;
-        const row = original.closest(
-          '[role="row"], .main-trackList-trackListRow',
-        );
-        // Keep the player and side-panel controls. Only suppress redundant
-        // playlist actions in rows of the destination playlist itself.
-        entry.primary.hidden = !!(
-          onTargetPage &&
-          present &&
-          row &&
-          !row.closest('aside, [data-testid="queue"]')
-        );
-        entry.primary.setAttribute("aria-pressed", String(present === true));
-        icon(entry.primary, present ? "check" : "plus");
-        label(
-          entry.primary,
-          present
-            ? "Remove from first pinned playlist"
-            : config.mode === "both"
-              ? "Add to first pinned playlist and Liked Songs"
-              : "Add to first pinned playlist",
-        );
-      }
+      const present = membership.get(entry.uri)?.present;
+      const row = original.closest(
+        '[role="row"], .main-trackList-trackListRow',
+      );
+      // Keep the player and side-panel controls. Only suppress redundant
+      // playlist actions in rows of the destination playlist itself.
+      entry.primary.hidden = !!(
+        onTargetPage &&
+        present &&
+        row &&
+        !row.closest('aside, [data-testid="queue"]')
+      );
+      entry.primary.setAttribute("aria-pressed", String(present === true));
+      icon(entry.primary, present ? "check" : "plus");
+      label(
+        entry.primary,
+        present
+          ? "Remove from first pinned playlist"
+          : config.mode === "both"
+            ? "Add to first pinned playlist and Liked Songs"
+            : "Add to first pinned playlist",
+      );
       entry.group.hidden = entry.primary.hidden && !entry.heart;
       if (liked.has(entry.uri)) setLiked(entry.uri, liked.get(entry.uri)!);
     }
@@ -225,7 +223,7 @@ export function start(S: SpicetifyHost, doc: Document = document): Runtime {
     );
     let resolvedTarget = false;
     try {
-      const playlist = config.mode === "liked" ? null : await target(api);
+      const playlist = await target(api);
       resolvedTarget = true;
       if (disposed || generation !== statusGeneration) return;
       if (playlist?.uri !== activeTarget?.uri) {
@@ -303,10 +301,7 @@ export function start(S: SpicetifyHost, doc: Document = document): Runtime {
       const uri = trackFor(original, S.Player);
       if (!uri) continue;
       const primary = makeButton(uri, "primary");
-      const heart =
-        config.separateHeart && config.mode !== "liked"
-          ? makeButton(uri, "heart")
-          : null;
+      const heart = config.separateHeart ? makeButton(uri, "heart") : null;
       const group = doc.createElement("span");
       group.className = "ppp-controls";
       group.append(primary);

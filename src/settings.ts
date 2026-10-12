@@ -7,12 +7,10 @@ export function settings(value?: unknown): Settings {
     for (const key of ["enabled", "separateHeart"] as const) {
       if (typeof stored[key] === "boolean") result[key] = stored[key];
     }
-    if (
-      stored.mode === "playlist" ||
-      stored.mode === "both" ||
-      stored.mode === "liked"
-    )
+    if (stored.mode === "playlist" || stored.mode === "both")
       result.mode = stored.mode;
+    // The removed Liked Songs-only mode is equivalent to disabling the extension.
+    if (stored.mode === "liked") result.enabled = false;
   }
   return result;
 }

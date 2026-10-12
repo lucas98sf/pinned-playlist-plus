@@ -30,8 +30,9 @@
       for (const key of ["enabled", "separateHeart"]) {
         if (typeof stored[key] === "boolean") result[key] = stored[key];
       }
-      if (stored.mode === "playlist" || stored.mode === "both" || stored.mode === "liked")
+      if (stored.mode === "playlist" || stored.mode === "both")
         result.mode = stored.mode;
+      if (stored.mode === "liked") result.enabled = false;
     }
     return result;
   }
@@ -66,37 +67,35 @@
       if (!TRACK.test(uri))
         throw new Error("This button supports Spotify songs only.");
       const actions = [];
-      if (config.mode !== "liked") {
-        const playlist = await target(api);
-        const key = `${playlist.uri}:${uri}`;
-        if (!pendingSaves.has(key)) {
-          const operation = (async () => {
-            const existing = await api.PlaylistAPI.getItem(playlist.uri, uri);
-            if (existing) {
-              if (typeof existing.uid !== "string" || !existing.uid)
-                throw new Error(
-                  "Spotify did not provide a playlist entry ID for this song."
-                );
-              await api.PlaylistAPI.remove(playlist.uri, [
-                { uri, uid: existing.uid }
-              ]);
-              return true;
-            }
-            await api.PlaylistAPI.add(playlist.uri, [uri], { after: "end" });
-            return false;
-          })();
-          pendingSaves.set(key, operation);
-          operation.finally(() => pendingSaves.delete(key)).catch(() => {
-          });
-        }
-        const removed = await pendingSaves.get(key);
-        onPlaylistChange?.(playlist, !removed);
-        actions.push({
-          action: removed ? "Removed from" : "Added to",
-          destination: playlist.name || "playlist"
+      const playlist = await target(api);
+      const key = `${playlist.uri}:${uri}`;
+      if (!pendingSaves.has(key)) {
+        const operation = (async () => {
+          const existing = await api.PlaylistAPI.getItem(playlist.uri, uri);
+          if (existing) {
+            if (typeof existing.uid !== "string" || !existing.uid)
+              throw new Error(
+                "Spotify did not provide a playlist entry ID for this song."
+              );
+            await api.PlaylistAPI.remove(playlist.uri, [
+              { uri, uid: existing.uid }
+            ]);
+            return true;
+          }
+          await api.PlaylistAPI.add(playlist.uri, [uri], { after: "end" });
+          return false;
+        })();
+        pendingSaves.set(key, operation);
+        operation.finally(() => pendingSaves.delete(key)).catch(() => {
         });
       }
-      if (config.mode !== "playlist") {
+      const removed = await pendingSaves.get(key);
+      onPlaylistChange?.(playlist, !removed);
+      actions.push({
+        action: removed ? "Removed from" : "Added to",
+        destination: playlist.name || "playlist"
+      });
+      if (config.mode === "both") {
         try {
           await api.LibraryAPI.add({ uris: [uri] });
         } catch (error) {
@@ -334,8 +333,7 @@
       const mode = doc.createElement("select");
       for (const [value, text] of [
         ["playlist", "Add to first pinned playlist"],
-        ["both", "Add to first pinned playlist AND Liked Songs"],
-        ["liked", "Toggle Liked Songs only"]
+        ["both", "Add to first pinned playlist AND Liked Songs"]
       ]) {
         const option = doc.createElement("option");
         option.value = value;
@@ -554,7 +552,7 @@
             return rendered;
           }
         });
-      const isHeart = kind === "heart" || config.mode === "liked";
+      const isHeart = kind === "heart";
       icon(button, isHeart ? "heart" : "plus");
       label(
         button,
@@ -612,7 +610,7 @@
       liked.set(uri, value);
       for (const entry of managed.values()) {
         if (entry.uri !== uri) continue;
-        const heart = config.mode === "liked" ? entry.primary : entry.heart;
+        const heart = entry.heart;
         if (!heart) continue;
         heart.setAttribute("aria-pressed", String(value));
         icon(heart, value ? "heartFilled" : "heart");
@@ -624,19 +622,17 @@
       const page = path.match(/^\/playlist\/([A-Za-z0-9]+)(?:\/|$)/);
       const onTargetPage = page && activeTarget?.uri === `spotify:playlist:${page[1]}`;
       for (const [original, entry] of managed) {
-        if (config.mode !== "liked") {
-          const present = membership.get(entry.uri)?.present;
-          const row = original.closest(
-            '[role="row"], .main-trackList-trackListRow'
-          );
-          entry.primary.hidden = !!(onTargetPage && present && row && !row.closest('aside, [data-testid="queue"]'));
-          entry.primary.setAttribute("aria-pressed", String(present === true));
-          icon(entry.primary, present ? "check" : "plus");
-          label(
-            entry.primary,
-            present ? "Remove from first pinned playlist" : config.mode === "both" ? "Add to first pinned playlist and Liked Songs" : "Add to first pinned playlist"
-          );
-        }
+        const present = membership.get(entry.uri)?.present;
+        const row = original.closest(
+          '[role="row"], .main-trackList-trackListRow'
+        );
+        entry.primary.hidden = !!(onTargetPage && present && row && !row.closest('aside, [data-testid="queue"]'));
+        entry.primary.setAttribute("aria-pressed", String(present === true));
+        icon(entry.primary, present ? "check" : "plus");
+        label(
+          entry.primary,
+          present ? "Remove from first pinned playlist" : config.mode === "both" ? "Add to first pinned playlist and Liked Songs" : "Add to first pinned playlist"
+        );
         entry.group.hidden = entry.primary.hidden && !entry.heart;
         if (liked.has(entry.uri)) setLiked(entry.uri, liked.get(entry.uri));
       }
@@ -668,7 +664,7 @@
       );
       let resolvedTarget = false;
       try {
-        const playlist = config.mode === "liked" ? null : await target(api);
+        const playlist = await target(api);
         resolvedTarget = true;
         if (disposed || generation !== statusGeneration) return;
         if (playlist?.uri !== activeTarget?.uri) {
@@ -733,7 +729,7 @@
         const uri = trackFor(original, S.Player);
         if (!uri) continue;
         const primary = makeButton(uri, "primary");
-        const heart = config.separateHeart && config.mode !== "liked" ? makeButton(uri, "heart") : null;
+        const heart = config.separateHeart ? makeButton(uri, "heart") : null;
         const group = doc.createElement("span");
         group.className = "ppp-controls";
         group.append(primary);

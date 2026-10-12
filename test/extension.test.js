@@ -95,6 +95,8 @@ test("validates saved options and discards previously saved playlist overrides",
     "playlist",
   );
   assert.equal(settings({ enabled: false }).enabled, false);
+  assert.equal(settings({ mode: "liked", enabled: true }).enabled, false);
+  assert.equal(settings({ mode: "liked" }).mode, "playlist");
   assert.equal(
     "playlist" in settings({ playlist: "spotify:playlist:override" }),
     false,

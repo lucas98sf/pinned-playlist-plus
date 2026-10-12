@@ -1,5 +1,5 @@
 /** The Spicetify/Spotify surface this extension uses. Internal APIs stay at this boundary. */
-export type SaveMode = "playlist" | "both" | "liked";
+export type SaveMode = "playlist" | "both";
 export interface Settings {
   enabled: boolean;
   mode: SaveMode;

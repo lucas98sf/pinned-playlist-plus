@@ -47,7 +47,6 @@ export function createSettingsView(
     for (const [value, text] of [
       ["playlist", "Add to first pinned playlist"],
       ["both", "Add to first pinned playlist AND Liked Songs"],
-      ["liked", "Toggle Liked Songs only"],
     ]) {
       const option = doc.createElement("option");
       option.value = value;

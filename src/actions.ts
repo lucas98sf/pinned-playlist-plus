@@ -35,36 +35,34 @@ export function createActions(api: Platform) {
       action: "Added to" | "Removed from";
       destination: string;
     }[] = [];
-    if (config.mode !== "liked") {
-      const playlist = await target(api);
-      const key = `${playlist.uri}:${uri}`;
-      if (!pendingSaves.has(key)) {
-        const operation = (async () => {
-          const existing = await api.PlaylistAPI.getItem(playlist.uri, uri);
-          if (existing) {
-            if (typeof existing.uid !== "string" || !existing.uid)
-              throw new Error(
-                "Spotify did not provide a playlist entry ID for this song.",
-              );
-            await api.PlaylistAPI.remove(playlist.uri, [
-              { uri, uid: existing.uid },
-            ]);
-            return true;
-          }
-          await api.PlaylistAPI.add(playlist.uri, [uri], { after: "end" });
-          return false;
-        })();
-        pendingSaves.set(key, operation);
-        operation.finally(() => pendingSaves.delete(key)).catch(() => {});
-      }
-      const removed = await pendingSaves.get(key)!;
-      onPlaylistChange?.(playlist, !removed);
-      actions.push({
-        action: removed ? "Removed from" : "Added to",
-        destination: playlist.name || "playlist",
-      });
+    const playlist = await target(api);
+    const key = `${playlist.uri}:${uri}`;
+    if (!pendingSaves.has(key)) {
+      const operation = (async () => {
+        const existing = await api.PlaylistAPI.getItem(playlist.uri, uri);
+        if (existing) {
+          if (typeof existing.uid !== "string" || !existing.uid)
+            throw new Error(
+              "Spotify did not provide a playlist entry ID for this song.",
+            );
+          await api.PlaylistAPI.remove(playlist.uri, [
+            { uri, uid: existing.uid },
+          ]);
+          return true;
+        }
+        await api.PlaylistAPI.add(playlist.uri, [uri], { after: "end" });
+        return false;
+      })();
+      pendingSaves.set(key, operation);
+      operation.finally(() => pendingSaves.delete(key)).catch(() => {});
     }
-    if (config.mode !== "playlist") {
+    const removed = await pendingSaves.get(key)!;
+    onPlaylistChange?.(playlist, !removed);
+    actions.push({
+      action: removed ? "Removed from" : "Added to",
+      destination: playlist.name || "playlist",
+    });
+    if (config.mode === "both") {
       try {
         await api.LibraryAPI.add({ uris: [uri] });
       } catch (error) {
