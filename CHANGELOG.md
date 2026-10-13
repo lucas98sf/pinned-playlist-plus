@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.4
+
+- Remove bold styling from the settings symbols.
+
 ## 1.2.3
 
 - Use a dedicated symbol font so ⊕ and ♥ remain legible in Spotify.
