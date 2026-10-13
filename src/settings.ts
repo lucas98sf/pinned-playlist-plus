@@ -9,6 +9,11 @@ export function settings(value?: unknown): Settings {
     }
     if (stored.mode === "playlist" || stored.mode === "both")
       result.mode = stored.mode;
+    if (
+      stored.destination === "first-pinned" ||
+      stored.destination === "recently-updated"
+    )
+      result.destination = stored.destination;
     // The removed Liked Songs-only mode is equivalent to disabling the extension.
     if (stored.mode === "liked") result.enabled = false;
   }

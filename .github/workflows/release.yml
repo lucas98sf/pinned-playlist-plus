@@ -32,4 +32,4 @@ jobs:
           cp install.ps1 README.md LICENSE release/
           (cd release && sha256sum pinned-playlist-plus.js > SHA256SUMS)
           (cd release && zip -r ../pinned-playlist-plus.zip .)
-          gh release create "$RELEASE_TAG" pinned-playlist-plus.zip release/pinned-playlist-plus.js release/SHA256SUMS --verify-tag --generate-notes --title "Pinned Playlist Plus $RELEASE_TAG"
+          gh release create "$RELEASE_TAG" pinned-playlist-plus.zip release/pinned-playlist-plus.js release/SHA256SUMS --verify-tag --generate-notes --title "Save to Playlist $RELEASE_TAG"

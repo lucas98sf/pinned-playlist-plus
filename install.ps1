@@ -31,7 +31,7 @@ if ($Uninstall) {
         if ($expectedHash -notmatch '^[a-fA-F0-9]{64}$' -or (Get-FileHash -LiteralPath $bundlePath -Algorithm SHA256).Hash -ne $expectedHash) {
             throw 'The release checksum did not match. Your installation is unchanged.'
         }
-        Write-Host "Installing Pinned Playlist Plus $($release.tag_name)"
+        Write-Host "Installing Save to Playlist $($release.tag_name)"
     }
     if (-not (Test-Path -LiteralPath $bundlePath)) {
         throw 'The compiled extension was not found. Run npm run build first.'

@@ -1,6 +1,6 @@
-import { KEY, ICONS, TRACK, VERSION } from "./constants";
+import { KEY, ICONS, TRACK, VERSION, NAME } from "./constants";
 import { settings } from "./settings";
-import { target, createActions } from "./actions";
+import { target, createActions, destinationLabel } from "./actions";
 import { LEGACY_BUTTONS, isSaveButton, trackFor } from "./dom";
 import { createSettingsView } from "./settings-view";
 import { STYLES } from "./styles";
@@ -35,6 +35,7 @@ export function start(S: SpicetifyHost, doc: Document = document): Runtime {
   let activeTarget: LibraryItem | null = null;
   let playlistSubscription: Cancel | null = null;
   let statusGeneration = 0;
+  let configGeneration = 0;
   let disposed = false;
   const settingsView = createSettingsView(S, doc, () => config, configure);
   const showSettings = settingsView.show;
@@ -49,6 +50,12 @@ export function start(S: SpicetifyHost, doc: Document = document): Runtime {
   }
   function notify(message: string, error = false) {
     S.showNotification(message, error);
+  }
+  function playlistLabel(present = false) {
+    const destination = destinationLabel(config.destination).toLowerCase();
+    return present
+      ? `Remove from ${destination}`
+      : `Add to ${destination}${config.mode === "both" ? " and Liked Songs" : ""}`;
   }
   function label(button: SaveButton, text: string) {
     if (button.getAttribute("aria-label") === text) return;
@@ -82,14 +89,7 @@ export function start(S: SpicetifyHost, doc: Document = document): Runtime {
       });
     const isHeart = kind === "heart";
     icon(button, isHeart ? "heart" : "plus");
-    label(
-      button,
-      isHeart
-        ? "Add to Liked Songs"
-        : config.mode === "both"
-          ? "Add to first pinned playlist and Liked Songs"
-          : "Add to first pinned playlist",
-    );
+    label(button, isHeart ? "Add to Liked Songs" : playlistLabel());
     if (isHeart) button.setAttribute("aria-pressed", "false");
     button.addEventListener("click", async (event) => {
       event.preventDefault();
@@ -99,6 +99,7 @@ export function start(S: SpicetifyHost, doc: Document = document): Runtime {
       // Ignore any status read started before this action.
       statusGeneration++;
       const snapshot = { ...config };
+      const savedConfigGeneration = configGeneration;
       try {
         if (isHeart) {
           const liked = await actions.toggleLike(uri);
@@ -109,14 +110,17 @@ export function start(S: SpicetifyHost, doc: Document = document): Runtime {
             uri,
             snapshot,
             (playlist, present) => {
+              if (disposed || savedConfigGeneration !== configGeneration)
+                return;
               // Spotify's membership index can lag behind a successful write.
               // Render the confirmed result immediately and invalidate older reads.
               statusGeneration++;
-              if (!activeTarget) {
+              if (activeTarget?.uri !== playlist.uri) {
+                membership.clear();
+                confirmedUntil.clear();
                 activeTarget = playlist;
                 watchPlaylist(playlist.uri);
               }
-              if (activeTarget.uri !== playlist.uri) return;
               membership.set(uri, { present, time: Date.now() });
               confirmedUntil.set(uri, Date.now() + 5000);
               renderStatus();
@@ -130,7 +134,7 @@ export function start(S: SpicetifyHost, doc: Document = document): Runtime {
           if (snapshot.mode === "both") updateHearts(uri, true);
         }
       } catch (error) {
-        console.error("[Pinned Playlist Plus]", error);
+        console.error(`[${NAME}]`, error);
         notify(errorMessage(error) || "Could not save this song.", true);
       } finally {
         button.disabled = false;
@@ -176,14 +180,7 @@ export function start(S: SpicetifyHost, doc: Document = document): Runtime {
       );
       entry.primary.setAttribute("aria-pressed", String(present === true));
       icon(entry.primary, present ? "check" : "plus");
-      label(
-        entry.primary,
-        present
-          ? "Remove from first pinned playlist"
-          : config.mode === "both"
-            ? "Add to first pinned playlist and Liked Songs"
-            : "Add to first pinned playlist",
-      );
+      label(entry.primary, playlistLabel(present));
       entry.group.hidden = entry.primary.hidden && !entry.heart;
       if (liked.has(entry.uri)) setLiked(entry.uri, liked.get(entry.uri)!);
     }
@@ -223,7 +220,7 @@ export function start(S: SpicetifyHost, doc: Document = document): Runtime {
     );
     let resolvedTarget = false;
     try {
-      const playlist = await target(api);
+      const playlist = await target(api, config.destination);
       resolvedTarget = true;
       if (disposed || generation !== statusGeneration) return;
       if (playlist?.uri !== activeTarget?.uri) {
@@ -231,6 +228,7 @@ export function start(S: SpicetifyHost, doc: Document = document): Runtime {
         confirmedUntil.clear();
         activeTarget = playlist;
         watchPlaylist(playlist?.uri);
+        renderStatus();
       }
       const found = new Map<string, boolean>();
       // Limit reads for virtualized track lists; cache membership between
@@ -272,10 +270,7 @@ export function start(S: SpicetifyHost, doc: Document = document): Runtime {
         watchPlaylist(null);
         renderStatus();
       }
-      console.warn(
-        "[Pinned Playlist Plus] Could not refresh saved state",
-        error,
-      );
+      console.warn(`[${NAME}] Could not refresh saved state`, error);
     }
   }
   function scan() {
@@ -321,13 +316,18 @@ export function start(S: SpicetifyHost, doc: Document = document): Runtime {
   }
   function configure(next: unknown) {
     config = settings(next);
+    configGeneration++;
     statusGeneration++;
+    activeTarget = null;
+    membership.clear();
+    confirmedUntil.clear();
+    watchPlaylist(null);
     storage.setItem(KEY, config);
     for (const [original, entry] of managed) remove(original, entry);
     scan();
   }
   const menu = new S.Menu.Item(
-    "Pinned Playlist Plus settings",
+    `${NAME} settings`,
     false,
     showSettings,
     `<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">${ICONS.plugin}</svg>`,
@@ -352,7 +352,11 @@ export function start(S: SpicetifyHost, doc: Document = document): Runtime {
   const playlistEvents = api.PlaylistAPI.getEvents?.();
   unsubscribe.push(
     listen(playlistEvents, "operation_complete", (event) => {
-      if (event.data?.uri === activeTarget?.uri && !event.data?.error)
+      if (
+        !event.data?.error &&
+        (config.destination === "recently-updated" ||
+          event.data?.uri === activeTarget?.uri)
+      )
         void refreshStatus(true);
     }),
   );

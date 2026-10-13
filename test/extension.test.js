@@ -90,6 +90,24 @@ function platform() {
 }
 
 test("validates saved options and discards previously saved playlist overrides", () => {
+  assert.equal(settings().destination, "first-pinned");
+  assert.deepEqual(
+    settings({ enabled: false, mode: "both", separateHeart: false }),
+    {
+      enabled: false,
+      mode: "both",
+      separateHeart: false,
+      destination: "first-pinned",
+    },
+  );
+  assert.equal(
+    settings({ destination: "recently-updated" }).destination,
+    "recently-updated",
+  );
+  assert.equal(
+    settings({ destination: "invalid" }).destination,
+    "first-pinned",
+  );
   assert.equal(
     settings({ mode: "invalid", enabled: "false", playlist: "bad" }).mode,
     "playlist",
@@ -112,13 +130,13 @@ test("selects the first pinned playlist, ignoring Liked Songs and unpinned items
 test("fails clearly for absent pins and an uneditable first pin", async () => {
   const { api } = platform();
   api.LibraryAPI.getContents = async () => ({ items: [] });
-  await assert.rejects(target(api, settings()), /Pin a playlist/);
+  await assert.rejects(target(api), /Pin a playlist/);
   api.LibraryAPI.getContents = async () => ({
     items: [
       { uri: playlist, pinned: true, canAddTo: false, name: "Read only" },
     ],
   });
-  await assert.rejects(target(api, settings()), /cannot add/);
+  await assert.rejects(target(api), /cannot add/);
 });
 
 test("playlist-only button toggles playlist membership and avoids concurrent duplicates", async () => {
@@ -291,6 +309,231 @@ test("settings name the first pinned playlist automatically and offer no overrid
   const saved = calls.find((call) => call[0] === "storage")[2];
   assert.equal(saved.mode, "both");
   assert.equal("playlist" in saved, false);
+  assert.equal(saved.destination, "first-pinned");
+  assert.equal(modal.title, "Save to Playlist");
+  assert.equal(modal.content.querySelector("strong").textContent, "First");
+  runtime.dispose();
+  dom.window.close();
+});
+
+function recentFixture(api, items, timestamps) {
+  api.LibraryAPI.getContents = async function (options) {
+    assert.equal(options.sortOrder, "5");
+    assert.deepEqual(options.filters, ["2"]);
+    assert.equal(options.flattenTree, true);
+    const response = await this._your_library.all({
+      header: {
+        skip: options.offset,
+        length: options.limit,
+        sortOrder: { sortOrder: 5 },
+        allPlaylists: true,
+      },
+    });
+    return response;
+  };
+  api.LibraryAPI._your_library = {
+    all: async ({ header }) => {
+      assert.equal(header.ignorePinning, true);
+      const ordered = [...items].sort((a, b) =>
+        Number((timestamps[b.uri] || 0n) - (timestamps[a.uri] || 0n)),
+      );
+      return {
+        items: ordered.slice(header.skip, header.skip + header.length),
+        totalLength: items.length,
+        selectedSortOrder: { id: "5" },
+      };
+    },
+  };
+}
+
+test("recent destination compares edits across pins and unpinned playlists, not playback", async () => {
+  const { api } = platform();
+  const unpinned = "spotify:playlist:newer";
+  const items = [
+    { uri: playlist, pinned: true, canAddTo: true, lastPlayedAt: "2099-01-01" },
+    { uri: "spotify:playlist:readonly", canAddTo: false },
+    { uri: "spotify:playlist:unknown" },
+    {
+      uri: unpinned,
+      pinned: false,
+      canAddTo: true,
+      lastPlayedAt: "2000-01-01",
+    },
+  ];
+  const timestamps = { [playlist]: 100n, [unpinned]: 200n };
+  recentFixture(api, items, timestamps);
+  assert.equal((await target(api, "recently-updated")).uri, unpinned);
+  items[0].lastPlayedAt = "2100-01-01";
+  assert.equal((await target(api, "recently-updated")).uri, unpinned);
+  timestamps[playlist] = 300n;
+  assert.equal((await target(api, "recently-updated")).uri, playlist);
+});
+
+test("recent destination paginates flattened folders past noneditable playlists", async () => {
+  const { api } = platform();
+  const items = Array.from({ length: 101 }, (_, i) => ({
+    uri: `spotify:playlist:p${i}`,
+    canAddTo: i === 100,
+    folderDepth: i === 100 ? 2 : 0,
+  }));
+  const timestamps = Object.fromEntries(
+    items.map((item, i) => [item.uri, BigInt(101 - i)]),
+  );
+  recentFixture(api, items, timestamps);
+  assert.equal((await target(api, "recently-updated")).uri, items[100].uri);
+});
+
+test("recent destination refuses unavailable ordering, permissions and incomplete pagination", async () => {
+  const { api } = platform();
+  const items = [{ uri: playlist, canAddTo: true }];
+  recentFixture(api, items, { [playlist]: 100n });
+  const getContents = api.LibraryAPI.getContents;
+  api.LibraryAPI.getContents = async (options) => ({
+    ...(await getContents(options)),
+    selectedSortOrder: { id: "6" },
+  });
+  await assert.rejects(target(api, "recently-updated"), /reliably determine/);
+  api.LibraryAPI.getContents = async () => {
+    throw Error("Offline");
+  };
+  await assert.rejects(target(api, "recently-updated"), /Offline/);
+  recentFixture(api, items, { [playlist]: 100n });
+  delete api.LibraryAPI._your_library;
+  await assert.rejects(target(api, "recently-updated"), /reliably determine/);
+  recentFixture(api, [{ uri: playlist, canAddTo: false }], {});
+  await assert.rejects(target(api, "recently-updated"), /No editable playlist/);
+  recentFixture(api, [], {});
+  await assert.rejects(target(api, "recently-updated"), /No editable playlist/);
+  api.LibraryAPI.getContents = async () => ({
+    items,
+    selectedSortOrder: { id: "5" },
+    totalLength: 300,
+  });
+  await assert.rejects(target(api, "recently-updated"), /reliably determine/);
+});
+
+test("recent order includes an empty playlist and never mutates the shared library client", async () => {
+  const { api } = platform();
+  recentFixture(
+    api,
+    [{ uri: playlist, canAddTo: true, isEmpty: true, pinned: false }],
+    { [playlist]: 100n },
+  );
+  const client = api.LibraryAPI._your_library;
+  assert.equal((await target(api, "recently-updated")).uri, playlist);
+  assert.equal(api.LibraryAPI._your_library, client);
+  const original = client.all;
+  let seen;
+  client.all = async (request) => {
+    seen = request.header;
+    return original(request);
+  };
+  await target(api, "recently-updated");
+  assert.equal(seen.ignorePinning, true);
+});
+
+test("recent destination saves and removes from the freshly resolved playlist in both mode", async () => {
+  const { api, calls, tracks } = platform();
+  const other = "spotify:playlist:recent";
+  const timestamps = { [playlist]: 100n, [other]: 200n };
+  recentFixture(
+    api,
+    [
+      { uri: playlist, canAddTo: true },
+      { uri: other, name: "Recent", canAddTo: true },
+    ],
+    timestamps,
+  );
+  const actions = createActions(api);
+  const config = settings({ destination: "recently-updated", mode: "both" });
+  await actions.save(song, config);
+  assert.equal(tracks.has(`${other}:${song}`), true);
+  await actions.save(song, config);
+  assert.equal(tracks.has(`${other}:${song}`), false);
+  timestamps[playlist] = 300n;
+  await actions.save(song, config);
+  assert.equal(tracks.has(`${playlist}:${song}`), true);
+  assert.equal(calls.filter((c) => c[0] === "like").length, 3);
+  assert.equal(await actions.toggleLike(song), false);
+});
+
+test("switching destinations clears checks and watches edits outside the current target", async () => {
+  const { api, dom, S, tracks, playlistEvents } = stateFixture(
+    '<div data-testid="now-playing-widget"><button class="main-addButton-button"></button></div>',
+  );
+  tracks.add(`${playlist}:${song}`);
+  const runtime = start(S, dom.window.document);
+  await runtime.refreshStatus(true);
+  assert.equal(
+    dom.window.document.querySelector(".ppp-button").dataset.pppIcon,
+    "check",
+  );
+  const other = "spotify:playlist:recent";
+  const timestamps = { [playlist]: 100n, [other]: 200n };
+  recentFixture(
+    api,
+    [
+      { uri: playlist, canAddTo: true },
+      { uri: other, canAddTo: true },
+    ],
+    timestamps,
+  );
+  runtime.configure({ destination: "recently-updated" });
+  assert.equal(
+    dom.window.document.querySelector(".ppp-button").dataset.pppIcon,
+    "plus",
+  );
+  await runtime.refreshStatus(true);
+  assert.equal(
+    dom.window.document.querySelector(".ppp-button").getAttribute("aria-label"),
+    "Add to most recently updated playlist",
+  );
+  timestamps[playlist] = 300n;
+  playlistEvents.emit("operation_complete", { uri: playlist });
+  await settle();
+  assert.equal(
+    dom.window.document.querySelector(".ppp-button").dataset.pppIcon,
+    "check",
+  );
+  runtime.dispose();
+  dom.window.close();
+});
+
+test("settings preview follows the destination selection, ignores old responses, and saves it", async () => {
+  const { api, dom, S, calls } = stateFixture("");
+  let release;
+  api.LibraryAPI.getContents = () =>
+    new Promise((resolve) => {
+      release = resolve;
+    });
+  let modal;
+  S.PopupModal.display = (value) => {
+    modal = value;
+    dom.window.document.body.append(value.content);
+  };
+  const runtime = start(S, dom.window.document);
+  runtime.showSettings();
+  const other = "spotify:playlist:recent";
+  recentFixture(api, [{ uri: other, name: "Newest", canAddTo: true }], {
+    [other]: 200n,
+  });
+  const select = modal.content.querySelector('[aria-label="Which playlist?"]');
+  select.value = "recently-updated";
+  select.dispatchEvent(new dom.window.Event("change"));
+  await settle();
+  release({ items: [{ uri: playlist, name: "Old", pinned: true }] });
+  await settle();
+  assert.equal(
+    modal.content.querySelector('[role="status"]').textContent,
+    "Most recently updated playlist: Newest",
+  );
+  assert.equal(modal.content.querySelector("strong").textContent, "Newest");
+  assert.match(modal.content.textContent, /Listening does not change/);
+  modal.content.querySelector(".ppp-save").click();
+  assert.equal(
+    calls.find((c) => c[0] === "storage")[2].destination,
+    "recently-updated",
+  );
   runtime.dispose();
   dom.window.close();
 });

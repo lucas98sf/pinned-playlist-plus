@@ -1,6 +1,6 @@
 {
-  "name": "Pinned Playlist Plus",
-  "description": "Save to your first pinned playlist with +, and Liked Songs with ♥.",
+  "name": "Save to Playlist",
+  "description": "Save with + to your first pinned or most recently updated playlist. ♥ for Liked Songs.",
   "preview": "assets/preview.svg",
   "main": "dist/pinned-playlist-plus.js",
   "readme": "README.md",
@@ -11,6 +11,6 @@
     }
   ],
   "tags": ["playlist", "liked songs", "buttons"],
-  "version": "1.1.5",
-  "branch": "v1.1.5"
+  "version": "1.2.0",
+  "branch": "v1.2.0"
 }

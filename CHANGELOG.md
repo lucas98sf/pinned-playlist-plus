@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.2.0
+
+- Rename the extension to Save to Playlist while preserving installation and updater compatibility.
+- Add a destination selector for the first pinned playlist or most recently updated editable playlist, including unpinned playlists and folder contents.
+- Use Spotify’s Recently Updated order with pin grouping disabled, including empty playlists after removing their last song. Listening activity does not change the destination.
+- Update settings, tooltips, Marketplace description, preview, and documentation for both destinations. Existing settings keep first-pinned behavior.
+- Clear playlist check states when switching destinations and refresh the recent destination after edits to other playlists.
+
 ## 1.1.5
 
 - Remove the redundant Liked Songs-only mode; disable the extension for Spotify's default behavior.

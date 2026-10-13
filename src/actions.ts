@@ -1,7 +1,94 @@
 import { TRACK, PLAYLIST } from "./constants";
 import { errorMessage } from "./errors";
-import type { Platform, LibraryItem, Settings } from "./types";
-export async function target(api: Platform): Promise<LibraryItem> {
+import type { Platform, LibraryItem, Settings, Destination } from "./types";
+export function destinationLabel(destination: Destination): string {
+  return destination === "recently-updated"
+    ? "Most recently updated playlist"
+    : "First pinned playlist";
+}
+
+const RECENT_SORT = "5";
+const PLAYLIST_FILTER = "2";
+const RECENT_UNAVAILABLE =
+  "Spotify could not reliably determine the most recently updated playlist. Try again or select First pinned playlist.";
+
+async function recentlyUpdated(api: Platform): Promise<LibraryItem> {
+  const client = api.LibraryAPI._your_library;
+  if (!client?.all) throw new Error(RECENT_UNAVAILABLE);
+  // The public API groups pins first and does not expose ignorePinning.
+  // Use its normal request builder and response mapper on an isolated receiver;
+  // only this resolver's requests change, never Spotify's library or other extensions.
+  const library = Object.create(api.LibraryAPI) as Platform["LibraryAPI"];
+  library._your_library = {
+    all: (request) =>
+      client.all({
+        ...request,
+        header: { ...request.header, ignorePinning: true },
+      }),
+  };
+  const seen = new Set<string>();
+  let latest: LibraryItem | undefined;
+  for (let offset = 0; ; offset += 100) {
+    const response = await library.getContents({
+      offset,
+      limit: 100,
+      filters: [PLAYLIST_FILTER],
+      sortOrder: RECENT_SORT,
+      flattenTree: true,
+    });
+    if (
+      !Array.isArray(response?.items) ||
+      response.selectedSortOrder?.id !== RECENT_SORT
+    )
+      throw new Error(RECENT_UNAVAILABLE);
+    let added = 0;
+    for (const item of response.items) {
+      if (!item || typeof item.uri !== "string")
+        throw new Error(RECENT_UNAVAILABLE);
+      if (!seen.has(item.uri)) {
+        seen.add(item.uri);
+        added++;
+      }
+      if (!latest && PLAYLIST.test(item.uri) && item.canAddTo === true)
+        latest = item;
+    }
+    if (
+      response.totalLength !== undefined &&
+      (!Number.isSafeInteger(response.totalLength) || response.totalLength < 0)
+    )
+      throw new Error(RECENT_UNAVAILABLE);
+    const complete =
+      response.totalLength === undefined
+        ? response.items.length < 100
+        : offset + response.items.length >= response.totalLength;
+    if (complete) break;
+    if (!added || response.items.length !== 100)
+      throw new Error(RECENT_UNAVAILABLE);
+  }
+  if (!latest)
+    throw new Error(
+      "No editable playlist found in Your Library. Create or save a playlist you can modify.",
+    );
+  return latest;
+}
+
+export async function target(
+  api: Platform,
+  destination: Destination = "first-pinned",
+): Promise<LibraryItem> {
+  if (destination === "recently-updated") {
+    try {
+      return await recentlyUpdated(api);
+    } catch (error) {
+      const message = errorMessage(error);
+      if (
+        message.startsWith("No editable playlist") ||
+        message === RECENT_UNAVAILABLE
+      )
+        throw error;
+      throw new Error(`${RECENT_UNAVAILABLE} ${message}`);
+    }
+  }
   // Use Spotify's default library order, which places pins first in pin order.
   // CUSTOM (4) is only valid with a playlist filter, not the mixed library.
   const response = await api.LibraryAPI.getContents({ offset: 0, limit: 100 });
@@ -35,7 +122,7 @@ export function createActions(api: Platform) {
       action: "Added to" | "Removed from";
       destination: string;
     }[] = [];
-    const playlist = await target(api);
+    const playlist = await target(api, config.destination);
     const key = `${playlist.uri}:${uri}`;
     if (!pendingSaves.has(key)) {
       const operation = (async () => {

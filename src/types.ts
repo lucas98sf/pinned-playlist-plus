@@ -1,11 +1,13 @@
 /** The Spicetify/Spotify surface this extension uses. Internal APIs stay at this boundary. */
 export type SaveMode = "playlist" | "both";
+export type Destination = "first-pinned" | "recently-updated";
 export interface Settings {
   enabled: boolean;
   mode: SaveMode;
+  destination: Destination;
   separateHeart: boolean;
 }
-export type ToggleKey = Exclude<keyof Settings, "mode">;
+export type ToggleKey = "enabled" | "separateHeart";
 export interface LibraryItem {
   uri: string;
   name?: string;
@@ -31,16 +33,31 @@ export interface EventBus {
 }
 export interface Platform {
   LibraryAPI: {
+    _your_library?: {
+      all(request: {
+        header?: Record<string, unknown>;
+        [key: string]: unknown;
+      }): Promise<unknown>;
+    };
+
     getContents(options: {
       offset: number;
       limit: number;
-    }): Promise<{ items: LibraryItem[] }>;
+      sortOrder?: string;
+      flattenTree?: boolean;
+      filters?: string[];
+    }): Promise<{
+      items: LibraryItem[];
+      totalLength?: number;
+      selectedSortOrder?: { id: string };
+    }>;
     contains(...uris: string[]): Promise<boolean[]>;
     add(options: { uris: string[] }): Promise<unknown>;
     remove(options: { uris: string[] }): Promise<unknown>;
     getEvents?(): EventBus;
   };
   PlaylistAPI: {
+    /** Spotify's public metadata omits modification time. Isolate this private read here. */
     getItem(playlist: string, track: string): Promise<PlaylistItem | null>;
     remove(playlist: string, tracks: PlaylistItem[]): Promise<unknown>;
     add(

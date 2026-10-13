@@ -1,12 +1,12 @@
-# Pinned Playlist Plus
+# Save to Playlist
 
-A standalone Spicetify extension that replaces song-saving **+** controls with one-click saving to your first pinned playlist. A separate **♥** toggles Liked Songs.
+A standalone Spicetify extension that replaces song-saving **+** controls with one-click saving to your first pinned or most recently updated playlist. A separate **♥** toggles Liked Songs.
 
-![Pinned Playlist Plus preview](assets/preview.svg)
+![Save to Playlist preview](assets/preview.svg)
 
 ## Marketplace
 
-Search for **Pinned Playlist Plus** in Spicetify Marketplace after its index refreshes. This repository includes the required manifest, preview and compiled extension, and uses the `spicetify-extensions` topic for discovery. There is no separate extension submission PR. See the [official publishing requirements](https://github.com/spicetify/marketplace/wiki/Publishing-to-Marketplace).
+Search for **Save to Playlist** in Spicetify Marketplace after its index refreshes. This repository includes the required manifest, preview and compiled extension, and uses the `spicetify-extensions` topic for discovery. There is no separate extension submission PR. See the [official publishing requirements](https://github.com/spicetify/marketplace/wiki/Publishing-to-Marketplace).
 
 If you previously installed manually, disable that copy before installing from Marketplace to avoid loading two copies. On Windows, use `./install.ps1 -Uninstall`, then install the Marketplace version.
 
@@ -14,7 +14,7 @@ If you installed before the compiled bundle moved to `dist/`, remove the old ent
 
 ## Versions and updates
 
-Open **Pinned Playlist Plus settings** to see the running version. Click **Check for updates**, then **Install vX.Y.Z**, then **Reload Spotify**. Checking is manual; no background requests are made. The updater selects stable GitHub releases, validates the tagged bundle and updates only this extension's Marketplace record. It also migrates the old root script path. Settings are preserved. If a download fails, the existing installation is kept.
+Open **Save to Playlist settings** to see the running version. Click **Check for updates**, then **Install vX.Y.Z**, then **Reload Spotify**. Checking is manual; no background requests are made. The updater selects stable GitHub releases, validates the tagged bundle and updates only this extension's Marketplace record. It also migrates the old root script path. Settings are preserved. If a download fails, the existing installation is kept.
 
 Fresh Marketplace installs use the release tag specified by the manifest. Use the settings updater for subsequent release updates. Marketplace's Installed tab checks repository activity but can retain its stored file path; it does not compare semantic versions. Tagged URLs avoid cached copies of the mutable main branch. The dist path stays stable in future releases. If Marketplace shows an older card after a release, restart Spotify to clear its session manifest cache before reinstalling.
 
@@ -40,16 +40,16 @@ With Spicetify already installed, run from this folder:
 
 This copies the extension into the configured Spicetify Extensions directory, enables it alongside existing extensions, and runs `spicetify apply` (which can restart Spotify). No developer account, API key, or build step is needed.
 
-Open Spotify's profile menu → **Pinned Playlist Plus settings**.
+Open Spotify's profile menu → **Save to Playlist settings**.
 
 - **Enable:** turning it off restores Spotify's original buttons immediately.
-- **Save mode:** first pinned playlist only (default), or first pinned playlist AND Liked Songs. Disable the extension for Spotify's default behavior.
-- **Destination:** always the first pinned playlist in Your Library. Reorder your pins to change it. Settings display its name automatically.
+- **Save mode:** save to the selected playlist (default), or playlist AND Liked Songs. Disable the extension for Spotify's default behavior.
+- **Destination:** first pinned playlist (default), or most recently updated editable playlist in Your Library, including unpinned playlists and playlists in folders. Reorder your pins to change the first-pinned destination. In recent mode, editing a different playlist changes the destination; listening alone does not. Settings display the selected playlist's name automatically.
 - **Separate ♥ button:** show an independent ♥ for Liked Songs alongside + (default on). Liked Songs always uses ♥.
 
-Click **+** to add a song to the first pinned playlist; click its check again to remove it. ♥ toggles Liked Songs independently. In both mode, **+** adds the song to both destinations, and clicking the check removes it from the playlist while keeping it in Liked Songs. If there is no pinned playlist or the first pin is not editable, the extension shows an error rather than changing the destination. Partial success is reported if one destination works and the other fails.
+Click **+** to add a song to the selected playlist; click its check again to remove it. ♥ toggles Liked Songs independently. In both mode, **+** adds the song to both destinations, and clicking the check removes it from the playlist while keeping it in Liked Songs. The destination is resolved before each save. If there is no pinned playlist or the first pin is not editable, first-pinned mode shows an error. Recent mode skips playlists without confirmed editing permission and reports an error if modification order cannot be determined reliably. Partial success is reported if one destination works and the other fails.
 
-The playlist button shows a green check when the song is already in the first pinned playlist. On other Spotify pages, clicking that check removes the song from the playlist. On the destination playlist's own page, song rows hide the redundant playlist button; use Spotify's track menu there to remove a song. ♥ tracks Liked Songs separately. Status refreshes after saves, playlist edits, pin changes, navigation, and periodically for changes from other devices. Player and queue controls remain available.
+The playlist button shows a green check when the song is already in the selected playlist. On other Spotify pages, clicking that check removes the song from the playlist. On the destination playlist's own page, song rows hide the redundant playlist button; use Spotify's track menu there to remove a song. ♥ tracks Liked Songs separately. Status refreshes after saves, playlist edits, pin changes, navigation, and periodically for changes from other devices. Player and queue controls remain available.
 
 Both buttons share a compact group and use Spicetify tooltips styled to match Spotify's native tooltip font, background, spacing, rounded corners and shadow.
 
@@ -58,6 +58,10 @@ Settings are saved per Spotify account. The extension supports song-save control
 ## Compatibility
 
 Developed against installed Spicetify 2.45.3 / Spotify 1.3.4.258. Uses Spicetify's `LibraryAPI`, `PlaylistAPI`, profile menu and popup modal. Supports Spotify's generic Encore curation controls as well as older Spicetify button classes. These internal APIs and Spotify's DOM can change; after a Spotify update, update/reapply Spicetify. If controls are missing or a target cannot be resolved, use the off switch and report your versions.
+
+Recent mode requests Spotify's Recently Updated order with flattened playlists and `ignorePinning: true`. An isolated library API receiver adds that internal option without changing Spotify's own library sorting. This includes empty playlists and avoids mistaking playback or pin order for editing. An unsupported API or incomplete response produces a clear error rather than selecting another destination.
+
+Previously called **Pinned Playlist Plus**. The repository URL, `dist/pinned-playlist-plus.js`, account settings key, runtime global, and generated bundle header retain their original identifiers for compatibility with existing Marketplace installations and v1.1.5 updaters. The visible name is **Save to Playlist**; no reinstall or settings reset is required.
 
 API reference: [Spicetify Platform](https://spicetify.app/docs/development/api-wrapper/methods/platform), [extension installation](https://spicetify.app/docs/customization/extensions).
 
@@ -79,7 +83,7 @@ npm run build
 | `src/index.ts`                      | Wait for Spicetify and start once                           |
 | `src/types.ts`                      | Typed boundary for the Spotify and Spicetify APIs used here |
 | `src/settings.ts`                   | Validate persisted settings                                 |
-| `src/actions.ts`                    | Find the first pinned playlist, save songs and toggle likes |
+| `src/actions.ts`                    | Resolve the selected playlist, save songs and toggle likes  |
 | `src/dom.ts`                        | Identify native save buttons and their track URIs           |
 | `src/runtime.ts`                    | Manage controls, membership caches, events and cleanup      |
 | `src/settings-view.ts`              | Settings dialog and native save button                      |

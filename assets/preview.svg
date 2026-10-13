@@ -6,9 +6,9 @@
   </g>
   <g font-family="Arial, Helvetica, sans-serif">
     <text x="176" y="100" fill="#b3b3b3" font-size="22" letter-spacing="3">SPICETIFY EXTENSION</text>
-    <text x="176" y="144" fill="#fff" font-size="38" font-weight="700">Pinned Playlist Plus</text>
-    <text x="64" y="248" fill="#fff" font-size="48" font-weight="700">Your first pinned playlist.</text>
-    <text x="64" y="307" fill="#b3b3b3" font-size="30">One click to save. A heart to like.</text>
+    <text x="176" y="144" fill="#fff" font-size="38" font-weight="700">Save to Playlist</text>
+    <text x="64" y="248" fill="#fff" font-size="48" font-weight="700">Your playlist. One click.</text>
+    <text x="64" y="307" fill="#b3b3b3" font-size="30">First pinned or last updated. ♥ to like.</text>
     <rect x="64" y="356" width="1072" height="172" rx="16" fill="#242424"/>
     <rect x="92" y="390" width="104" height="104" rx="8" fill="#363636"/>
     <g transform="translate(126 414)" fill="none" stroke="#b3b3b3" stroke-width="5" stroke-linecap="round">

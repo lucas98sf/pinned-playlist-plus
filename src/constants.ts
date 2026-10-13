@@ -1,10 +1,12 @@
 import type { Settings } from "./types";
 import { version } from "../package.json";
 export const VERSION = version;
+export const NAME = "Save to Playlist";
 export const KEY = "pinned-playlist-plus:v1";
 export const DEFAULTS: Settings = {
   enabled: true,
   mode: "playlist",
+  destination: "first-pinned",
   separateHeart: true,
 };
 export const TRACK = /^spotify:track:[A-Za-z0-9]+$/;

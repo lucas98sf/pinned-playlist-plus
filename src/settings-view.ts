@@ -1,13 +1,13 @@
-import { target } from "./actions";
+import { target, destinationLabel } from "./actions";
 import { errorMessage } from "./errors";
-import { VERSION } from "./constants";
+import { VERSION, NAME } from "./constants";
 import {
   latestRelease,
   installRelease,
   RELEASES_URL,
   type Release,
 } from "./updates";
-import type { SpicetifyHost, Settings, ToggleKey } from "./types";
+import type { SpicetifyHost, Settings, ToggleKey, Destination } from "./types";
 
 export function createSettingsView(
   S: SpicetifyHost,
@@ -26,8 +26,6 @@ export function createSettingsView(
     const root = doc.createElement("div");
     root.className = "ppp-settings";
     const help = doc.createElement("p");
-    help.textContent =
-      "Uses the first pinned playlist in Your Library. Reorder your pins to change the destination.";
     root.append(help);
     const controls = {} as Record<ToggleKey, HTMLInputElement>;
     function toggle(key: ToggleKey, text: string) {
@@ -40,13 +38,26 @@ export function createSettingsView(
       root.append(row);
       controls[key] = input;
     }
-    toggle("enabled", "Enable Pinned Playlist Plus");
+    toggle("enabled", `Enable ${NAME}`);
+    const destinationLabelElement = doc.createElement("label");
+    destinationLabelElement.textContent = "Which playlist?";
+    const destination = doc.createElement("select");
+    destination.setAttribute("aria-label", "Which playlist?");
+    for (const value of ["first-pinned", "recently-updated"] as const) {
+      const option = doc.createElement("option");
+      option.value = value;
+      option.textContent = destinationLabel(value);
+      destination.append(option);
+    }
+    destination.value = getSettings().destination;
+    destinationLabelElement.append(destination);
+    root.append(destinationLabelElement);
     const modeLabel = doc.createElement("label");
     modeLabel.textContent = "What should + do?";
     const mode = doc.createElement("select");
     for (const [value, text] of [
-      ["playlist", "Add to first pinned playlist"],
-      ["both", "Add to first pinned playlist AND Liked Songs"],
+      ["playlist", "Save to playlist"],
+      ["both", "Save to playlist AND Liked Songs"],
     ]) {
       const option = doc.createElement("option");
       option.value = value;
@@ -62,29 +73,41 @@ export function createSettingsView(
     );
     const status = doc.createElement("p");
     status.setAttribute("role", "status");
-    status.textContent = "First pinned playlist: checking…";
     root.append(status);
-    target(api)
-      .then((result) => {
-        const name = doc.createElement("strong");
-        name.textContent = result.name || "Unnamed playlist";
-        status.replaceChildren(
-          doc.createTextNode("First pinned playlist: "),
-          name,
-        );
-      })
-      .catch((error) => {
-        status.textContent = errorMessage(error);
-      });
+    let requestGeneration = 0;
+    function checkDestination() {
+      const generation = ++requestGeneration;
+      const selected = destination.value as Destination;
+      const prefix = `${destinationLabel(selected)}: `;
+      help.textContent =
+        selected === "first-pinned"
+          ? "Uses the first pinned playlist in Your Library. Reorder your pins to change the destination."
+          : "Uses the most recently edited playlist you can modify in Your Library, including unpinned playlists. Listening does not change the destination.";
+      status.textContent = `${prefix}checking…`;
+      target(api, selected)
+        .then((result) => {
+          if (generation !== requestGeneration) return;
+          const name = doc.createElement("strong");
+          name.textContent = result.name || "Unnamed playlist";
+          status.replaceChildren(doc.createTextNode(prefix), name);
+        })
+        .catch((error) => {
+          if (generation !== requestGeneration) return;
+          status.textContent = errorMessage(error);
+        });
+    }
+    destination.onchange = checkDestination;
+    checkDestination();
     const saveSettings = () => {
       try {
         configure({
           enabled: controls.enabled.checked,
           mode: mode.value,
+          destination: destination.value,
           separateHeart: controls.separateHeart.checked,
         });
         S.PopupModal.hide();
-        S.showNotification("Pinned Playlist Plus settings saved");
+        S.showNotification(`${NAME} settings saved`);
       } catch (error) {
         status.textContent = errorMessage(error);
       }
@@ -166,7 +189,7 @@ export function createSettingsView(
     updateActions.className = "ppp-update-actions";
     updateActions.append(update, notes);
     root.append(updateStatus, updateActions);
-    S.PopupModal.display({ title: "Pinned Playlist Plus", content: root });
+    S.PopupModal.display({ title: NAME, content: root });
   }
 
   return {

@@ -1,4 +1,4 @@
-import { VERSION } from "./constants";
+import { VERSION, NAME } from "./constants";
 
 const REPO = "lucas98sf/pinned-playlist-plus";
 export const RELEASES_URL = `https://github.com/${REPO}/releases/latest`;
@@ -129,9 +129,11 @@ export async function installRelease(
               throw new Error("Invalid Marketplace installation record.");
             record.manifest = {
               ...record.manifest,
+              name: NAME,
               main: "dist/pinned-playlist-plus.js",
               version: release.version,
             };
+            record.title = NAME;
             record.branch = release.tag;
             record.extensionURL = `https://raw.githubusercontent.com/${REPO}/${release.tag}/dist/pinned-playlist-plus.js`;
             store.put({ key: KEY, value: JSON.stringify(record) });

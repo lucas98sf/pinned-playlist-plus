@@ -105,6 +105,8 @@ test("Marketplace update migrates only this entry, pins the release and preserve
     assert.equal(updated.branch, release.tag);
     assert.equal(updated.manifest.version, release.version);
     assert.equal(updated.manifest.main, "dist/pinned-playlist-plus.js");
+    assert.equal(updated.manifest.name, "Save to Playlist");
+    assert.equal(updated.title, "Save to Playlist");
     assert.equal(
       updated.extensionURL,
       "https://raw.githubusercontent.com/lucas98sf/pinned-playlist-plus/v9.0.0/dist/pinned-playlist-plus.js",
