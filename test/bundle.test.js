@@ -15,7 +15,7 @@ test("the installable browser bundle waits for Spicetify, starts once and restor
     return 1;
   };
   dom.window.eval(source);
-  assert.equal(dom.window.PinnedPlaylistPlus, undefined);
+  assert.equal(dom.window.SaveToPlaylist, undefined);
   assert.equal(retries.length, 1);
   let registrations = 0;
   dom.window.Spicetify = {
@@ -45,12 +45,13 @@ test("the installable browser bundle waits for Spicetify, starts once and restor
     showNotification() {},
   };
   retries.shift()();
-  const runtime = dom.window.PinnedPlaylistPlus;
+  const runtime = dom.window.SaveToPlaylist;
   assert.ok(runtime);
+  assert.equal(dom.window.PinnedPlaylistPlus, runtime);
   assert.equal(dom.window.document.querySelectorAll(".ppp-controls").length, 1);
   dom.window.eval(source);
   assert.equal(registrations, 1);
-  assert.equal(dom.window.PinnedPlaylistPlus, runtime);
+  assert.equal(dom.window.SaveToPlaylist, runtime);
   runtime.configure({ enabled: false });
   assert.equal(dom.window.document.querySelectorAll(".ppp-controls").length, 0);
   assert.equal(

@@ -1,5 +1,5 @@
 {
-  "name": "pinned-playlist-plus",
+  "name": "save-to-playlist",
   "version": "1.2.4",
   "private": true,
   "description": "Configurable Spicetify song-saving buttons",
@@ -28,6 +28,6 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/lucas98sf/pinned-playlist-plus.git"
+    "url": "https://github.com/lucas98sf/spotify-plugin-save-to-playlist.git"
   }
 }

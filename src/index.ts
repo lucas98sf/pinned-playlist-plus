@@ -15,6 +15,10 @@ function waitForSpicetify(): void {
     setTimeout(waitForSpicetify, 500);
     return;
   }
-  if (!globalThis.PinnedPlaylistPlus) globalThis.PinnedPlaylistPlus = start(S);
+  const runtime =
+    globalThis.SaveToPlaylist || globalThis.PinnedPlaylistPlus || start(S);
+  globalThis.SaveToPlaylist = runtime;
+  // Older installed bundles use this alias to prevent duplicate initialization.
+  globalThis.PinnedPlaylistPlus = runtime;
 }
 waitForSpicetify();

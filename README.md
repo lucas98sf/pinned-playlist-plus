@@ -20,7 +20,7 @@ Fresh Marketplace installs use the release tag specified by the manifest. Use th
 
 For a manual installation, run `./install.ps1 -Update` from the project folder or an extracted release ZIP. It downloads the latest stable release, verifies its SHA-256 checksum, and reapplies Spicetify. Avoid enabling a manual copy alongside the Marketplace copy.
 
-See [release notes](https://github.com/lucas98sf/pinned-playlist-plus/releases) and [CHANGELOG.md](CHANGELOG.md).
+See [release notes](https://github.com/lucas98sf/spotify-plugin-save-to-playlist/releases) and [CHANGELOG.md](CHANGELOG.md).
 
 ### Forcing an older Marketplace installation to update
 
@@ -61,7 +61,7 @@ Developed against installed Spicetify 2.45.3 / Spotify 1.3.4.258. Uses Spicetify
 
 Recent mode requests Spotify's Recently Updated order with flattened playlists and `ignorePinning: true`. An isolated library API receiver adds that internal option without changing Spotify's own library sorting. This includes empty playlists and avoids mistaking playback or pin order for editing. An unsupported API or incomplete response produces a clear error rather than selecting another destination.
 
-Previously called **Pinned Playlist Plus**. The repository URL, `dist/pinned-playlist-plus.js`, account settings key, runtime global, and generated bundle header retain their original identifiers for compatibility with existing Marketplace installations and v1.1.5 updaters. The visible name is **Save to Playlist**; no reinstall or settings reset is required.
+Previously called **Pinned Playlist Plus**. The script filename, account settings key, legacy runtime alias, and generated bundle header retain their original identifiers for compatibility with existing Marketplace installations and v1.1.5 updaters. The visible name is **Save to Playlist**; no reinstall or settings reset is required.
 
 API reference: [Spicetify Platform](https://spicetify.app/docs/development/api-wrapper/methods/platform), [extension installation](https://spicetify.app/docs/customization/extensions).
 

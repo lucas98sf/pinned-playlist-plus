@@ -1,6 +1,6 @@
 import { target, destinationLabel } from "./actions";
 import { errorMessage } from "./errors";
-import { VERSION, NAME } from "./constants";
+import { VERSION, NAME, REPO, LEGACY_REPO } from "./constants";
 import {
   latestRelease,
   installRelease,
@@ -26,8 +26,6 @@ export function createSettingsView(
     const root = doc.createElement("div");
     root.className = "ppp-settings";
     const help = doc.createElement("p");
-    help.textContent =
-      "Save songs to your first pinned or most recently updated editable playlist. Choose the destination below. Listening does not change which playlist was last edited.";
     root.append(help);
     const controls = {} as Record<ToggleKey, HTMLInputElement>;
     function caption(text: string) {
@@ -92,7 +90,9 @@ export function createSettingsView(
     function checkDestination() {
       const generation = ++requestGeneration;
       const selected = destination.value as Destination;
-      const prefix = `${destinationLabel(selected)}: `;
+      const label = destinationLabel(selected);
+      help.textContent = `Save to your ${label.toLowerCase()}.`;
+      const prefix = `${label}: `;
       status.textContent = `${prefix}checking…`;
       target(api, selected)
         .then((result) => {
@@ -153,7 +153,7 @@ export function createSettingsView(
     }
     const version = doc.createElement("p");
     const marketplace = [...doc.scripts].some((script) =>
-      script.src.includes("lucas98sf/pinned-playlist-plus"),
+      [REPO, LEGACY_REPO].some((repo) => script.src.includes(repo)),
     );
     version.textContent = `Version ${VERSION} · ${marketplace ? "Marketplace" : "Manual installation"}`;
     root.append(version);

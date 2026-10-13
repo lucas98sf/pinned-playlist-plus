@@ -23,7 +23,7 @@ if ($Uninstall) {
         $downloadDirectory = Join-Path ([IO.Path]::GetTempPath()) ([guid]::NewGuid().ToString())
         New-Item -ItemType Directory -Path $downloadDirectory | Out-Null
         $bundlePath = Join-Path $downloadDirectory $extensionName
-        $baseURL = "https://github.com/lucas98sf/pinned-playlist-plus/releases/download/$($release.tag_name)"
+        $baseURL = "https://github.com/lucas98sf/spotify-plugin-save-to-playlist/releases/download/$($release.tag_name)"
         Invoke-WebRequest "$baseURL/$extensionName" -OutFile $bundlePath
         $checksums = (Invoke-WebRequest "$baseURL/SHA256SUMS").Content
         if ($checksums -is [byte[]]) { $checksums = [Text.Encoding]::UTF8.GetString($checksums) }

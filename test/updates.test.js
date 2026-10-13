@@ -109,7 +109,7 @@ test("Marketplace update migrates only this entry, pins the release and preserve
     assert.equal(updated.title, "Save to Playlist");
     assert.equal(
       updated.extensionURL,
-      "https://raw.githubusercontent.com/lucas98sf/pinned-playlist-plus/v9.0.0/dist/pinned-playlist-plus.js",
+      "https://raw.githubusercontent.com/lucas98sf/spotify-plugin-save-to-playlist/v9.0.0/dist/pinned-playlist-plus.js",
     );
     assert.deepEqual(await store.read(listKey), [newKey, "other-extension"]);
     assert.deepEqual(await store.read("other-extension"), { untouched: true });
@@ -144,6 +144,37 @@ test("unavailable download and malformed storage never change an installation", 
       installRelease(release, new IDBFactory()),
       /Manual installation/,
     );
+  } finally {
+    global.fetch = previousFetch;
+    store.db.close();
+  }
+});
+
+test("Marketplace installs under the renamed repository update without a duplicate legacy entry", async () => {
+  const key =
+    "marketplace:installed:lucas98sf/spotify-plugin-save-to-playlist/dist/pinned-playlist-plus.js";
+  const record = {
+    user: "lucas98sf",
+    repo: "spotify-plugin-save-to-playlist",
+    manifest: { main: "dist/pinned-playlist-plus.js" },
+  };
+  const store = await setup([
+    [key, record],
+    [listKey, [key]],
+  ]);
+  const previousFetch = global.fetch;
+  global.fetch = async (url) => {
+    assert.equal(
+      url,
+      "https://cdn.jsdelivr.net/gh/lucas98sf/spotify-plugin-save-to-playlist@v9.0.0/dist/pinned-playlist-plus.js",
+    );
+    return new Response("/* Pinned Playlist Plus v9.0.0 - generated */");
+  };
+  try {
+    await installRelease(release, store.factory);
+    assert.equal((await store.read(key)).branch, release.tag);
+    assert.deepEqual(await store.read(listKey), [key]);
+    assert.equal(await store.read(newKey), undefined);
   } finally {
     global.fetch = previousFetch;
     store.db.close();

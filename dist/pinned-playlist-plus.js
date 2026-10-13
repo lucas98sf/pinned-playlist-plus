@@ -7,6 +7,8 @@
   // src/constants.ts
   var VERSION = version;
   var NAME = "Save to Playlist";
+  var REPO = "lucas98sf/spotify-plugin-save-to-playlist";
+  var LEGACY_REPO = "lucas98sf/pinned-playlist-plus";
   var KEY = "pinned-playlist-plus:v1";
   var DEFAULTS = {
     enabled: true,
@@ -245,10 +247,10 @@
   }
 
   // src/updates.ts
-  var REPO = "lucas98sf/pinned-playlist-plus";
   var RELEASES_URL = `https://github.com/${REPO}/releases/latest`;
-  var KEY2 = `marketplace:installed:${REPO}/dist/pinned-playlist-plus.js`;
-  var OLD_KEY = `marketplace:installed:${REPO}/pinned-playlist-plus.js`;
+  var KEY2 = `marketplace:installed:${LEGACY_REPO}/dist/pinned-playlist-plus.js`;
+  var OLD_KEY = `marketplace:installed:${LEGACY_REPO}/pinned-playlist-plus.js`;
+  var CURRENT_KEY = `marketplace:installed:${REPO}/dist/pinned-playlist-plus.js`;
   var LIST = "marketplace:installed-extensions";
   function newerVersion(candidate, current) {
     const parse = (value) => {
@@ -319,23 +321,32 @@
       await new Promise((resolve, reject) => {
         const transaction = db.transaction("settings", "readwrite");
         const store = transaction.objectStore("settings");
-        const requests = [store.get(KEY2), store.get(OLD_KEY), store.get(LIST)];
+        const requests = [
+          store.get(KEY2),
+          store.get(OLD_KEY),
+          store.get(LIST),
+          store.get(CURRENT_KEY)
+        ];
         let loaded = 0;
         let failure;
         for (const request of requests)
           request.onsuccess = () => {
             if (++loaded !== requests.length) return;
             try {
-              const stored = requests[0].result || requests[1].result;
+              const stored = requests[0].result || requests[1].result || requests[3].result;
               const listed = JSON.parse(
                 requests[2].result?.value || "[]"
               );
-              if (!stored || !Array.isArray(listed) || !listed.some((key) => key === KEY2 || key === OLD_KEY))
+              if (!stored || !Array.isArray(listed) || !listed.some(
+                (key) => key === KEY2 || key === OLD_KEY || key === CURRENT_KEY
+              ))
                 throw new Error(
                   "Manual installation: download the release and run install.ps1 -Update instead."
                 );
               const record = JSON.parse(stored.value);
-              if (record.user !== "lucas98sf" || record.repo !== "pinned-playlist-plus")
+              if (record.user !== "lucas98sf" || ![LEGACY_REPO.split("/")[1], REPO.split("/")[1]].includes(
+                record.repo
+              ))
                 throw new Error("Invalid Marketplace installation record.");
               record.manifest = {
                 ...record.manifest,
@@ -346,7 +357,8 @@
               record.title = NAME;
               record.branch = release.tag;
               record.extensionURL = `https://raw.githubusercontent.com/${REPO}/${release.tag}/dist/pinned-playlist-plus.js`;
-              store.put({ key: KEY2, value: JSON.stringify(record) });
+              const installedKey = requests[0].result || requests[1].result ? KEY2 : CURRENT_KEY;
+              store.put({ key: installedKey, value: JSON.stringify(record) });
               store.delete(OLD_KEY);
               store.put({
                 key: LIST,
@@ -382,7 +394,6 @@
       const root = doc.createElement("div");
       root.className = "ppp-settings";
       const help = doc.createElement("p");
-      help.textContent = "Save songs to your first pinned or most recently updated editable playlist. Choose the destination below. Listening does not change which playlist was last edited.";
       root.append(help);
       const controls = {};
       function caption(text) {
@@ -447,7 +458,9 @@
       function checkDestination() {
         const generation = ++requestGeneration;
         const selected = destination.value;
-        const prefix = `${destinationLabel(selected)}: `;
+        const label = destinationLabel(selected);
+        help.textContent = `Save to your ${label.toLowerCase()}.`;
+        const prefix = `${label}: `;
         status.textContent = `${prefix}checking\u2026`;
         target(api, selected).then((result) => {
           if (generation !== requestGeneration) return;
@@ -502,7 +515,7 @@
       }
       const version2 = doc.createElement("p");
       const marketplace = [...doc.scripts].some(
-        (script) => script.src.includes("lucas98sf/pinned-playlist-plus")
+        (script) => [REPO, LEGACY_REPO].some((repo) => script.src.includes(repo))
       );
       version2.textContent = `Version ${VERSION} \xB7 ${marketplace ? "Marketplace" : "Manual installation"}`;
       root.append(version2);
@@ -944,7 +957,9 @@
       setTimeout(waitForSpicetify, 500);
       return;
     }
-    if (!globalThis.PinnedPlaylistPlus) globalThis.PinnedPlaylistPlus = start(S);
+    const runtime = globalThis.SaveToPlaylist || globalThis.PinnedPlaylistPlus || start(S);
+    globalThis.SaveToPlaylist = runtime;
+    globalThis.PinnedPlaylistPlus = runtime;
   }
   waitForSpicetify();
 })();

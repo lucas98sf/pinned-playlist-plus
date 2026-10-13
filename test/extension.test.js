@@ -294,10 +294,7 @@ test("settings name the first pinned playlist automatically and offer no overrid
   const runtime = start(S, dom.window.document);
   runtime.showSettings();
   await new Promise((resolve) => setTimeout(resolve, 0));
-  assert.match(
-    modal.content.textContent,
-    /first pinned or most recently updated editable playlist/,
-  );
+  assert.match(modal.content.textContent, /Save to your first pinned playlist/);
   assert.equal(
     modal.content.querySelector('[role="status"]').textContent,
     "First pinned playlist: First",
@@ -528,7 +525,10 @@ test("settings preview follows the destination selection, ignores old responses,
     "Most recently updated playlist: Newest",
   );
   assert.equal(modal.content.querySelector("strong").textContent, "Newest");
-  assert.match(modal.content.textContent, /Listening does not change/);
+  assert.match(
+    modal.content.textContent,
+    /Save to your most recently updated playlist/,
+  );
   modal.content.querySelector(".ppp-save").click();
   assert.equal(
     calls.find((c) => c[0] === "storage")[2].destination,

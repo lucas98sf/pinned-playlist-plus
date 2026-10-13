@@ -1,9 +1,9 @@
-import { VERSION, NAME } from "./constants";
+import { VERSION, NAME, REPO, LEGACY_REPO } from "./constants";
 
-const REPO = "lucas98sf/pinned-playlist-plus";
 export const RELEASES_URL = `https://github.com/${REPO}/releases/latest`;
-const KEY = `marketplace:installed:${REPO}/dist/pinned-playlist-plus.js`;
-const OLD_KEY = `marketplace:installed:${REPO}/pinned-playlist-plus.js`;
+const KEY = `marketplace:installed:${LEGACY_REPO}/dist/pinned-playlist-plus.js`;
+const OLD_KEY = `marketplace:installed:${LEGACY_REPO}/pinned-playlist-plus.js`;
+const CURRENT_KEY = `marketplace:installed:${REPO}/dist/pinned-playlist-plus.js`;
 const LIST = "marketplace:installed-extensions";
 export interface Release {
   version: string;
@@ -102,21 +102,29 @@ export async function installRelease(
     await new Promise<void>((resolve, reject) => {
       const transaction = db.transaction("settings", "readwrite");
       const store = transaction.objectStore("settings");
-      const requests = [store.get(KEY), store.get(OLD_KEY), store.get(LIST)];
+      const requests = [
+        store.get(KEY),
+        store.get(OLD_KEY),
+        store.get(LIST),
+        store.get(CURRENT_KEY),
+      ];
       let loaded = 0;
       let failure: unknown;
       for (const request of requests)
         request.onsuccess = () => {
           if (++loaded !== requests.length) return;
           try {
-            const stored = requests[0].result || requests[1].result;
+            const stored =
+              requests[0].result || requests[1].result || requests[3].result;
             const listed: unknown = JSON.parse(
               requests[2].result?.value || "[]",
             );
             if (
               !stored ||
               !Array.isArray(listed) ||
-              !listed.some((key) => key === KEY || key === OLD_KEY)
+              !listed.some(
+                (key) => key === KEY || key === OLD_KEY || key === CURRENT_KEY,
+              )
             )
               throw new Error(
                 "Manual installation: download the release and run install.ps1 -Update instead.",
@@ -124,7 +132,9 @@ export async function installRelease(
             const record = JSON.parse(stored.value);
             if (
               record.user !== "lucas98sf" ||
-              record.repo !== "pinned-playlist-plus"
+              ![LEGACY_REPO.split("/")[1], REPO.split("/")[1]].includes(
+                record.repo,
+              )
             )
               throw new Error("Invalid Marketplace installation record.");
             record.manifest = {
@@ -136,7 +146,9 @@ export async function installRelease(
             record.title = NAME;
             record.branch = release.tag;
             record.extensionURL = `https://raw.githubusercontent.com/${REPO}/${release.tag}/dist/pinned-playlist-plus.js`;
-            store.put({ key: KEY, value: JSON.stringify(record) });
+            const installedKey =
+              requests[0].result || requests[1].result ? KEY : CURRENT_KEY;
+            store.put({ key: installedKey, value: JSON.stringify(record) });
             store.delete(OLD_KEY);
             store.put({
               key: LIST,

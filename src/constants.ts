@@ -2,6 +2,9 @@ import type { Settings } from "./types";
 import { version } from "../package.json";
 export const VERSION = version;
 export const NAME = "Save to Playlist";
+export const REPO = "lucas98sf/spotify-plugin-save-to-playlist";
+// Compatibility identifiers keep existing Marketplace installs and settings intact.
+export const LEGACY_REPO = "lucas98sf/pinned-playlist-plus";
 export const KEY = "pinned-playlist-plus:v1";
 export const DEFAULTS: Settings = {
   enabled: true,

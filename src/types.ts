@@ -159,5 +159,6 @@ export interface SpicetifyHost {
 }
 declare global {
   var Spicetify: SpicetifyHost | undefined;
+  var SaveToPlaylist: Runtime | undefined;
   var PinnedPlaylistPlus: Runtime | undefined;
 }
