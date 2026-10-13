@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.2.3
+
+- Use a dedicated symbol font so ⊕ and ♥ remain legible in Spotify.
+- Explain both playlist destinations in the settings introduction.
+
 ## 1.2.2
 
 - Use ⊕ in settings labels, with matching bold styling and spacing for ⊕ and ♥.

@@ -296,7 +296,7 @@ test("settings name the first pinned playlist automatically and offer no overrid
   await new Promise((resolve) => setTimeout(resolve, 0));
   assert.match(
     modal.content.textContent,
-    /Uses the first pinned playlist in Your Library/,
+    /first pinned or most recently updated editable playlist/,
   );
   assert.equal(
     modal.content.querySelector('[role="status"]').textContent,

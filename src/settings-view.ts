@@ -26,6 +26,8 @@ export function createSettingsView(
     const root = doc.createElement("div");
     root.className = "ppp-settings";
     const help = doc.createElement("p");
+    help.textContent =
+      "Save songs to your first pinned or most recently updated editable playlist. Choose the destination below. Listening does not change which playlist was last edited.";
     root.append(help);
     const controls = {} as Record<ToggleKey, HTMLInputElement>;
     function caption(text: string) {
@@ -91,10 +93,6 @@ export function createSettingsView(
       const generation = ++requestGeneration;
       const selected = destination.value as Destination;
       const prefix = `${destinationLabel(selected)}: `;
-      help.textContent =
-        selected === "first-pinned"
-          ? "Uses the first pinned playlist in Your Library. Reorder your pins to change the destination."
-          : "Uses the most recently edited playlist you can modify in Your Library, including unpinned playlists. Listening does not change the destination.";
       status.textContent = `${prefix}checking…`;
       target(api, selected)
         .then((result) => {
