@@ -12,7 +12,10 @@ export const STYLES = `
     .ppp-settings { display: grid; gap: 18px; padding: 8px; }
     .ppp-settings label { display: grid; gap: 8px; }
     .ppp-settings label.ppp-toggle { display: flex; align-items: center; gap: 10px; }
-    .ppp-settings select { width: 100%; padding: 10px; background: var(--spice-card, #282828); color: var(--spice-text, #fff); border: 1px solid #777; border-radius: 4px; }
+    .ppp-inline-heart { margin-inline: .2em; }
+    .ppp-settings select { appearance: none; width: 100%; min-height: 44px; padding: 10px 44px 10px 12px; background-color: var(--spice-card, #282828); background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath fill='%23b3b3b3' d='M3.47 5.47a.75.75 0 0 1 1.06 0L8 8.94l3.47-3.47a.75.75 0 1 1 1.06 1.06l-4 4a.75.75 0 0 1-1.06 0l-4-4a.75.75 0 0 1 0-1.06Z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; color: var(--spice-text, #fff); border: 1px solid var(--spice-subtext, #777); border-radius: 4px; font: inherit; font-size: 14px; cursor: pointer; }
+    .ppp-settings select:hover { border-color: var(--spice-text, #fff); }
+    .ppp-settings select:focus-visible { outline: 2px solid var(--spice-text, #fff); outline-offset: 2px; }
     .ppp-settings-actions { display: flex; justify-content: flex-end; padding-top: 6px; }
     .ppp-save { border: 0; border-radius: 9999px; padding: 12px 24px; background: var(--spice-button, #1ed760); color: var(--spice-main, #121212); font: inherit; font-weight: 700; cursor: pointer; }
     .ppp-save:hover { transform: scale(1.04); filter: brightness(1.06); }

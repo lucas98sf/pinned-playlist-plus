@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.2.1
+
+- Give settings dropdowns an inset chevron, native-style sizing and focus states.
+- Add spacing around the ♥ in settings and clarify the playlist-only option.
+
 ## 1.2.0
 
 - Rename the extension to Save to Playlist while preserving installation and updater compatibility.

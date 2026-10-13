@@ -34,7 +34,18 @@ export function createSettingsView(
       const input = doc.createElement("input");
       input.type = "checkbox";
       input.checked = getSettings()[key];
-      row.append(input, doc.createTextNode(text));
+      const caption = doc.createElement("span");
+      const parts = text.split("♥");
+      parts.forEach((part, index) => {
+        if (index) {
+          const heart = doc.createElement("span");
+          heart.className = "ppp-inline-heart";
+          heart.textContent = "♥";
+          caption.append(heart);
+        }
+        caption.append(doc.createTextNode(part));
+      });
+      row.append(input, caption);
       root.append(row);
       controls[key] = input;
     }
@@ -56,7 +67,7 @@ export function createSettingsView(
     modeLabel.textContent = "What should + do?";
     const mode = doc.createElement("select");
     for (const [value, text] of [
-      ["playlist", "Save to playlist"],
+      ["playlist", "Save to playlist only"],
       ["both", "Save to playlist AND Liked Songs"],
     ]) {
       const option = doc.createElement("option");
