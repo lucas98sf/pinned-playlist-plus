@@ -28,24 +28,25 @@ export function createSettingsView(
     const help = doc.createElement("p");
     root.append(help);
     const controls = {} as Record<ToggleKey, HTMLInputElement>;
+    function caption(text: string) {
+      const element = doc.createElement("span");
+      for (const part of text.split(/([♥⊕])/)) {
+        if (part === "♥" || part === "⊕") {
+          const symbol = doc.createElement("span");
+          symbol.className = "ppp-inline-symbol";
+          symbol.textContent = part;
+          element.append(symbol);
+        } else element.append(doc.createTextNode(part));
+      }
+      return element;
+    }
     function toggle(key: ToggleKey, text: string) {
       const row = doc.createElement("label");
       row.className = "ppp-toggle";
       const input = doc.createElement("input");
       input.type = "checkbox";
       input.checked = getSettings()[key];
-      const caption = doc.createElement("span");
-      const parts = text.split("♥");
-      parts.forEach((part, index) => {
-        if (index) {
-          const heart = doc.createElement("span");
-          heart.className = "ppp-inline-heart";
-          heart.textContent = "♥";
-          caption.append(heart);
-        }
-        caption.append(doc.createTextNode(part));
-      });
-      row.append(input, caption);
+      row.append(input, caption(text));
       root.append(row);
       controls[key] = input;
     }
@@ -64,7 +65,7 @@ export function createSettingsView(
     destinationLabelElement.append(destination);
     root.append(destinationLabelElement);
     const modeLabel = doc.createElement("label");
-    modeLabel.textContent = "What should + do?";
+    modeLabel.append(caption("What should ⊕ do?"));
     const mode = doc.createElement("select");
     for (const [value, text] of [
       ["playlist", "Save to playlist only"],
@@ -80,7 +81,7 @@ export function createSettingsView(
     root.append(modeLabel);
     toggle(
       "separateHeart",
-      "Show a separate ♥ button for Liked Songs alongside +",
+      "Show a separate ♥ button for Liked Songs alongside ⊕",
     );
     const status = doc.createElement("p");
     status.setAttribute("role", "status");

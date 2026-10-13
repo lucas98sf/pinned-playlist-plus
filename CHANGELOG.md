@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.2
+
+- Use ⊕ in settings labels, with matching bold styling and spacing for ⊕ and ♥.
+
 ## 1.2.1
 
 - Give settings dropdowns an inset chevron, native-style sizing and focus states.
