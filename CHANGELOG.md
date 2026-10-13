@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.2.5
+
+- Shorten the settings description and follow the selected destination in both the description and playlist-name line.
+- Use the renamed repository for downloads, documentation, and project metadata.
+- Support Marketplace installs under either repository name while preserving existing settings and updater compatibility.
+
 ## 1.2.4
 
 - Remove bold styling from the settings symbols.
